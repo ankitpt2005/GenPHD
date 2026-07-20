@@ -15,8 +15,8 @@ Open `http://127.0.0.1:3000`.
 
 ## Current working flow
 
-1. Start at the landing page, then use the three-step onboarding flow to record a goal, active project, time budget, and blocker.
-2. Optionally complete the short baseline diagnostic, then open the route-based dashboard.
+1. Start at the landing page, then sign up or sign in.
+2. Enter the route-based dashboard directly; onboarding and diagnostic remain available as optional guided setup.
 3. Ask a technical decision from the dashboard or Decisions view.
 4. The API validates the request and returns a typed, source-aware Decision Brief.
 5. Start the attached Build Mission, complete it, and review the updated roadmap and learning evidence.
@@ -69,6 +69,14 @@ The server injects the browser-safe Supabase and Turnstile values at runtime. Af
 `lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. When `OPENROUTER_API_KEY` is set, GenPHD calls OpenRouter's multi-model auto router (`openrouter/auto-beta` by default) on the server. Groq is the next fallback when `GROQ_API_KEY` is set, followed by OpenAI when `OPENAI_API_KEY` is set. Each response is validated, merged with fixed source evidence, and rejected in favor of the next provider—or the deterministic Decision Brief—if malformed or unavailable. Keys are never sent to the browser.
 
 `GENPHD_DECISION_PROVIDERS=openrouter,groq,openai` controls provider priority. `OPENROUTER_COST_QUALITY_TRADEOFF` accepts `0` (favor quality) through `10` (favor cost); the default is `6`. Set `OPENROUTER_MODEL`, `GROQ_MODEL`, or `OPENAI_MODEL` to a specific model when needed. OpenAI defaults to `gpt-5.6-sol`.
+
+## Agent registry
+
+The `.agents` folder is an active, versioned part of the Decision Brief system.
+It defines three server-side reasoning contracts: a decision editor, an evidence
+guardian, and a mission designer. `lib/decision/provider.ts` combines these
+contracts in every live provider request, while schema validation and the
+deterministic fallback keep the result safe and predictable.
 
 ## Verification
 

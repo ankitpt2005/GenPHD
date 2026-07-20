@@ -7,9 +7,9 @@ import {
   Check,
   Compass,
   Database,
-  MessageSquare,
   ShieldCheck,
-  Sparkles,
+  Menu,
+  Search
 } from "lucide-react";
 
 type MarketingPageProps = {
@@ -26,50 +26,55 @@ const navigation = [
 
 export function PublicHeader() {
   return (
-    <header className="public-header">
+    <header className="public-header new-public-header">
       <Link aria-label="GenPHD home" className="brand public-brand" href="/">
         <span className="brand-mark">G</span>
-        <span className="brand-name">GenPHD</span>
       </Link>
       <nav aria-label="Public navigation" className="public-nav">
         {navigation.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}
       </nav>
-      <Link className="button button-secondary public-sign-in" href="/login">Sign in</Link>
+      <div className="header-actions">
+        <Search className="header-icon" size={20} />
+        <Menu className="header-icon" size={20} />
+      </div>
     </header>
   );
 }
 
 export function PublicFooter() {
   return (
-    <footer className="public-footer">
-      <div className="footer-intro">
-        <p className="eyebrow">GenPHD</p>
-        <h2>Clear thinking<br />for what you build next.</h2>
-        <p>Decision intelligence for AI engineers who want evidence, momentum, and a workspace that remembers the important things.</p>
+    <footer className="public-footer new-public-footer">
+      <div className="footer-massive-brand">
+        <h1>GenPHD</h1>
+        <p className="footer-quote">
+          &ldquo;Clear thinking for what you build next. Decision intelligence for AI engineers who want evidence, momentum, and a workspace that remembers.&rdquo;
+        </p>
       </div>
-      <div className="footer-links">
-        <div>
-          <p className="eyebrow">Explore</p>
-          <Link href="/about">About GenPHD</Link>
-          <Link href="/services">How it works</Link>
-          <Link href="/feedback">Field notes</Link>
+      <div className="footer-columns-wrapper">
+        <div className="footer-col">
+          <h3 className="footer-col-title">Explore</h3>
+          <div className="footer-links">
+            <Link href="/about">About GenPHD</Link>
+            <Link href="/services">How it works</Link>
+            <Link href="/feedback">Field notes</Link>
+          </div>
         </div>
-        <div>
-          <p className="eyebrow">Workspace</p>
-          <Link href="/signup">Start a project</Link>
-          <Link href="/login">Sign in</Link>
-          <Link href="/contact">Contact</Link>
+        <div className="footer-col">
+          <h3 className="footer-col-title">Workspace</h3>
+          <div className="footer-links">
+            <Link href="/signup">Start a project</Link>
+            <Link href="/login">Sign in</Link>
+            <Link href="/contact">Contact</Link>
+          </div>
         </div>
-        <div>
-          <p className="eyebrow">Trust</p>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/legal">Policies</Link>
+        <div className="footer-col">
+          <h3 className="footer-col-title">Trust</h3>
+          <div className="footer-links">
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+            <Link href="/legal">Policies</Link>
+          </div>
         </div>
-      </div>
-      <div className="footer-bottom">
-        <span>© 2026 GenPHD</span>
-        <span>Built for deliberate AI work.</span>
       </div>
     </footer>
   );
@@ -79,17 +84,11 @@ function MarketingPage({ children, className = "" }: MarketingPageProps) {
   return <main className={`marketing-shell ${className}`}>{children}</main>;
 }
 
-const principles = [
-  ["Make the decision visible", "Turn a vague technical blocker into a brief with a recommendation, counterfactual, confidence, and evidence."],
-  ["Turn thought into a mission", "Every recommendation becomes a small, testable build action instead of another tab you mean to revisit."],
-  ["Keep the learning", "Record what changed, why it worked, and what should shape the next decision for this project."],
-] as const;
-
 const serviceCards = [
-  [Compass, "Decision briefs", "Ask a focused engineering question and get a traceable recommendation with sources, uncertainty, and a practical alternative."],
-  [BrainCircuit, "Evidence-aware roadmap", "Sequence skills and project milestones around what your product needs next, not a generic curriculum."],
-  [Check, "Build missions", "Move from advice to a bounded outcome with acceptance criteria, effort, and a clear definition of done."],
-  [Database, "Learning memory", "Retain important constraints, experiments, and outcomes so useful context survives beyond a single chat."],
+  [Compass, "Decision briefs", "Ask a focused engineering question and get a traceable recommendation with sources."],
+  [BrainCircuit, "Evidence roadmap", "Sequence skills and project milestones around what your product needs next."],
+  [Check, "Build missions", "Move from advice to a bounded outcome with acceptance criteria and clear effort."],
+  [Database, "Learning memory", "Retain important constraints, experiments, and outcomes so useful context survives."],
 ] as const;
 
 const fieldNotes = [
@@ -100,107 +99,80 @@ const fieldNotes = [
 
 export function MarketingLandingPage() {
   return (
-    <MarketingPage className="marketing-home">
+    <MarketingPage className="marketing-home new-marketing-home">
       <PublicHeader />
-      <section className="editorial-hero" aria-labelledby="marketing-title">
-        <div className="hero-copy">
-          <p className="eyebrow">Decision intelligence for AI engineers</p>
-          <h1 id="marketing-title">Just the right next move.</h1>
+      <section className="editorial-hero split-hero" aria-labelledby="marketing-title">
+        <div className="hero-pane hero-left">
+          <p className="eyebrow">GenPHD Intelligence</p>
+          <h1 id="marketing-title">Just the right<br/>next move.</h1>
           <p className="hero-description">GenPHD turns scattered technical advice into one evidence-backed action for the project you are building now.</p>
-          <div className="marketing-actions">
-            <Link className="button button-primary" href="/signup">Start one project <ArrowRight size={16} /></Link>
-            <Link className="text-action" href="/services">How GenPHD works <ArrowUpRight size={16} /></Link>
+          <Link className="button button-primary hero-btn" href="/signup">Learn more <ArrowRight size={16} /></Link>
+        </div>
+        <div className="hero-pane hero-right">
+          <div className="hero-vertical-nav">
+            <span>Workspace</span>
+            <span>Missions</span>
+            <span>Memory</span>
           </div>
         </div>
-        <div className="hero-composition" aria-label="A decision becomes an evidence-backed build mission">
-          <div className="hero-vertical-label">PROJECT CONTEXT · EVIDENCE · ACTION</div>
-          <div className="hero-ledger" aria-hidden="true">
-            <span>Evidence / 03</span>
-            <span>Confidence / considered</span>
-            <span>Next move / defined</span>
+        <div className="hero-center-device">
+          <div className="device-mockup">
+            <div className="mockup-header">
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="dot"></span>
+            </div>
+            <div className="mockup-body">
+              <p className="mockup-eyebrow">Current decision</p>
+              <h3>What should I validate before I build more?</h3>
+              <div className="mockup-content">
+                <p>Start with the retrieval path. Capture realistic questions.</p>
+                <button className="mockup-btn">Create Mission</button>
+              </div>
+            </div>
           </div>
-          <article className="hero-brief">
-            <p className="eyebrow">Current decision</p>
-            <h2>What should I validate before I build more?</h2>
-            <div className="brief-rule" />
-            <p>Start with the retrieval path. Capture five realistic questions before adding orchestration.</p>
-            <span><Check size={14} /> Evidence-aware recommendation</span>
-          </article>
-          <div className="hero-orbit hero-orbit-one" />
-          <div className="hero-orbit hero-orbit-two" />
-          <div className="hero-index">01 — today</div>
         </div>
       </section>
-
-      <section className="marketing-statement" aria-labelledby="statement-title">
-        <div className="statement-field" aria-hidden="true">
-          <span className="statement-field-caption">GENPHD / DECISION FIELD</span>
-          <span className="statement-field-index">01</span>
-          <span className="statement-field-dot" />
-          <strong>G</strong>
-          <span className="statement-field-line line-one" />
-          <span className="statement-field-line line-two" />
-        </div>
-        <div>
-          <p className="eyebrow">The GenPHD approach</p>
-          <h2 id="statement-title">Think clearly. Build deliberately. Remember what matters.</h2>
-          <p>GenPHD is a private decision workspace for the moments when an AI project needs a clearer path—not more noise.</p>
-          <Link className="text-action" href="/about">Meet the approach <ArrowUpRight size={16} /></Link>
-        </div>
-      </section>
-
-      <section className="principles-section" aria-labelledby="principles-title">
-        <div className="section-label">
-          <p className="eyebrow">The loop</p>
-          <h2 id="principles-title">A calm system for forward motion.</h2>
-          <p className="principles-aside-note">One grounded decision can change the quality of every build step that follows.</p>
-        </div>
-        <ol className="principle-list">
-          {principles.map(([title, detail], index) => (
-            <li key={title}>
-              <span>0{index + 1}</span>
-              <div><h3>{title}</h3><p>{detail}</p></div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="marketing-cta" aria-labelledby="cta-title">
-        <p className="eyebrow">Your workspace, not another feed</p>
-        <h2 id="cta-title">Start with the decision in front of you.</h2>
-        <p>Keep context, evidence, and the next practical action together from the first project onward.</p>
-        <div className="cta-proof" aria-label="GenPHD workspace principles">
-          <span>Private workspace</span><span>Evidence shown</span><span>Action focused</span>
-        </div>
-        <Link className="button button-primary" href="/signup">Create your workspace <ArrowRight size={16} /></Link>
-      </section>
-      <PublicFooter />
     </MarketingPage>
   );
 }
 
 export function AboutPage() {
   return (
-    <MarketingPage className="marketing-about">
+    <MarketingPage className="marketing-about new-marketing-about">
       <PublicHeader />
-      <section className="editorial-page-heading" aria-labelledby="about-title">
-        <p className="eyebrow">About GenPHD</p>
-        <h1 id="about-title">AI engineering deserves a clearer working memory.</h1>
-        <p>GenPHD was shaped around a simple observation: when project context is scattered, even good advice becomes difficult to use.</p>
-      </section>
-      <section className="about-manifesto" aria-label="Our working principles">
-        <div className="manifesto-graphic" aria-hidden="true"><span>01</span><span>G</span><span>∞</span></div>
-        <div className="manifesto-copy">
-          <p className="eyebrow">What we believe</p>
-          <h2>More information does not always create more progress.</h2>
-          <p>The useful question is smaller: given this project, this evidence, and this constraint—what is the next responsible thing to test?</p>
-          <p>GenPHD brings that question into focus, then keeps the answer and outcome available for the next one.</p>
+      <section className="about-hero-section">
+        <div className="about-illustration-col">
+          <div className="abstract-art">
+            <div className="shape box1"></div>
+            <div className="shape box2"></div>
+            <div className="shape box3"></div>
+            <div className="shape circle"></div>
+          </div>
+        </div>
+        <div className="about-text-col">
+          <h1 id="about-title">Think clearly.<br/>Build deliberately.</h1>
+          <p>More information does not always create more progress. The useful question is smaller: given this project, this evidence, and this constraint—what is the next responsible thing to test?</p>
+          <Link className="button button-primary huge-btn" href="/signup">Learn More <ArrowRight size={16} /></Link>
         </div>
       </section>
-      <section className="about-values">
-        <article><span>01</span><h2>Private by default</h2><p>Your project context belongs in your workspace, with visible controls over what is stored.</p></article>
-        <article><span>02</span><h2>Honest about uncertainty</h2><p>Recommendations show their evidence, their limits, and the alternative case instead of pretending to be certain.</p></article>
-        <article><span>03</span><h2>Built for doing</h2><p>Each decision should leave you with a small, meaningful action you can finish and learn from.</p></article>
+      
+      <section className="services-showcase">
+        <div className="services-header-box">
+          <p className="eyebrow">Capability</p>
+          <h2>How GenPHD helps</h2>
+        </div>
+        <div className="new-services-grid">
+          {serviceCards.map(([Icon, title, detail]) => (
+            <article key={title} className="new-service-card">
+              <div className="card-icon-wrapper">
+                <Icon aria-hidden="true" size={28} />
+              </div>
+              <h3>{title}</h3>
+              <p>{detail}</p>
+            </article>
+          ))}
+        </div>
       </section>
       <PublicFooter />
     </MarketingPage>
@@ -208,56 +180,30 @@ export function AboutPage() {
 }
 
 export function ServicesPage() {
-  return (
-    <MarketingPage className="marketing-services">
-      <PublicHeader />
-      <section className="editorial-page-heading services-heading" aria-labelledby="services-title">
-        <p className="eyebrow">How GenPHD helps</p>
-        <h1 id="services-title">A practical intelligence layer for your AI project.</h1>
-        <p>Each part of the workspace has one job: help you make, test, and retain better engineering decisions.</p>
-      </section>
-      <section className="services-grid" aria-label="GenPHD capabilities">
-        {serviceCards.map(([Icon, title, detail], index) => (
-          <article key={title} className="service-card">
-            <div className="service-card-top"><span>0{index + 1}</span><Icon aria-hidden="true" size={22} /></div>
-            <h2>{title}</h2>
-            <p>{detail}</p>
-          </article>
-        ))}
-      </section>
-      <section className="service-bridge">
-        <div><p className="eyebrow">The difference</p><h2>One project, one connected record.</h2></div>
-        <p>Instead of treating research, decisions, missions, and learning as separate tools, GenPHD connects them around the work you are actually doing.</p>
-      </section>
-      <PublicFooter />
-    </MarketingPage>
-  );
+  return <AboutPage />;
 }
 
 export function FeedbackPage() {
   return (
-    <MarketingPage className="marketing-feedback">
+    <MarketingPage className="marketing-feedback new-marketing-feedback">
       <PublicHeader />
-      <section className="editorial-page-heading feedback-heading" aria-labelledby="feedback-title">
-        <p className="eyebrow">Field notes</p>
-        <h1 id="feedback-title">Small signals from thoughtful AI work.</h1>
-        <p>Patterns we keep seeing when builders slow down just enough to make the next decision traceable.</p>
+      <section className="feedback-heading-centered" aria-labelledby="feedback-title">
+        <h1 id="feedback-title">Field Notes</h1>
+        <p>Small signals from thoughtful AI work. Patterns we keep seeing when builders slow down just enough to make the next decision traceable.</p>
       </section>
-      <section className="field-note-grid" aria-label="Field notes">
+      <section className="new-field-note-grid" aria-label="Field notes">
         {fieldNotes.map(([title, summary, category], index) => (
-          <article className="field-note" key={title}>
-            <div className={`field-note-art art-${index + 1}`} aria-hidden="true"><span>{String(index + 1).padStart(2, "0")}</span></div>
-            <p className="eyebrow">{category}</p>
-            <h2>{title}</h2>
-            <p>{summary}</p>
-            <Link className="text-action" href="/signup">Use this in a project <ArrowUpRight size={16} /></Link>
+          <article className="new-field-note" key={title}>
+            <div className={`field-note-image-placeholder placeholder-${index + 1}`}>
+               <span className="placeholder-number">0{index + 1}</span>
+            </div>
+            <div className="field-note-content">
+              <h3>{title}</h3>
+              <p>{summary}</p>
+              <span className="field-note-date">{category}</span>
+            </div>
           </article>
         ))}
-      </section>
-      <section className="feedback-prompt">
-        <MessageSquare aria-hidden="true" size={22} />
-        <div><p className="eyebrow">Shape what comes next</p><h2>Have a workflow that needs clearer thinking?</h2></div>
-        <Link className="button button-secondary" href="/contact">Send feedback <ArrowRight size={16} /></Link>
       </section>
       <PublicFooter />
     </MarketingPage>
@@ -266,26 +212,42 @@ export function FeedbackPage() {
 
 export function MarketingContactPage() {
   return (
-    <MarketingPage className="marketing-contact">
-      <PublicHeader />
-      <section className="contact-composition" aria-labelledby="contact-title">
-        <div className="contact-background-block block-one" aria-hidden="true" />
-        <div className="contact-background-block block-two" aria-hidden="true" />
-        <div className="contact-background-block block-three" aria-hidden="true" />
-        <div className="contact-callout">
-          <p className="eyebrow">Contact GenPHD</p>
-          <h1 id="contact-title">Bring us the question you are working through.</h1>
-          <p>Share product feedback, a support need, or an idea that would make GenPHD more useful for your next build.</p>
-          <a className="button button-primary" href="https://github.com/ankitpt2005/GenPHD/issues" rel="noreferrer" target="_blank">Open project support <ArrowUpRight size={16} /></a>
-          <p className="contact-note"><ShieldCheck aria-hidden="true" size={15} /> Please do not include passwords, API keys, or private project material in a public issue.</p>
+    <MarketingPage className="marketing-contact new-marketing-contact">
+      <div className="contact-split-layout">
+        <div className="contact-left-pane">
+           <Link aria-label="GenPHD home" className="brand contact-brand" href="/">
+             <span className="brand-mark">G</span>
+           </Link>
+           
+           <div className="vertical-text-nav">
+             <span className="active">Connect</span>
+             <span>Support</span>
+             <span>Ideas</span>
+           </div>
+           
+           <div className="contact-socials">
+             <span>GH</span>
+             <span>TW</span>
+             <span>LI</span>
+           </div>
         </div>
-        <aside className="contact-aside">
-          <span className="contact-aside-index">01—</span>
-          <Sparkles aria-hidden="true" size={28} />
-          <p>Thoughtful feedback is part of the product.</p>
-        </aside>
-      </section>
-      <PublicFooter />
+        <div className="contact-right-pane">
+           <div className="contact-form-card">
+             <p className="eyebrow">Contact GenPHD</p>
+             <h1 id="contact-title">Bring us the question<br/>you are working through.</h1>
+             <p>Share product feedback, a support need, or an idea that would make GenPHD more useful for your next build.</p>
+             
+             <div className="contact-action-box">
+                <div className="step-indicator">
+                  <span>1</span> <span className="dash">—</span> <span>5</span>
+                </div>
+                <a className="button button-primary huge-btn" href="https://github.com/ankitpt2005/GenPHD/issues" rel="noreferrer" target="_blank">Open project support <ArrowUpRight size={16} /></a>
+             </div>
+             <p className="contact-note"><ShieldCheck aria-hidden="true" size={15} /> Please do not include passwords or API keys in public issues.</p>
+           </div>
+           <div className="contact-overlay-art"></div>
+        </div>
+      </div>
     </MarketingPage>
   );
 }

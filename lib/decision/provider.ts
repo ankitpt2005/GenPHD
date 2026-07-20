@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { decisionWorkflowInstruction, decisionWorkflowVersion } from "../../.agents/registry";
 import { createDecisionBrief } from "./brief";
 import {
   confidenceSchema,
@@ -104,7 +105,10 @@ function buildPrompt(input: CreateDecisionInput, baseline: DecisionBrief) {
   const sources = baseline.evidence.map((source) => `- ${source.title}: ${source.detail}`).join("\n");
   const constraints = input.constraints?.length ? input.constraints.join(", ") : "two-day deadline, Python, one retrieval flow";
 
-  return `You are GenPHD's technical decision editor. Return only one valid JSON object, with no markdown or code fence.
+  return `You are GenPHD's technical decision workflow. Return only one valid JSON object, with no markdown or code fence.
+
+Active reasoning contracts:
+${decisionWorkflowInstruction()}
 
 Create a concise, honest Decision Brief for an AI engineer. Respect the project constraints and only rely on the evidence supplied below. Do not invent sources, citations, product capabilities, benchmark results, or factual claims. When evidence is incomplete, lower confidence and name the uncertainty.
 
@@ -132,7 +136,7 @@ function mergeModelDecision(baseline: DecisionBrief, decision: ModelDecision, mo
     conflicts: decision.conflicts.slice(0, 3),
     evidence: baseline.evidence,
     createdAt: new Date().toISOString(),
-    promptVersion: `${mode}-decision-v1`,
+    promptVersion: `${mode}-decision-${decisionWorkflowVersion()}`,
   });
 }
 
