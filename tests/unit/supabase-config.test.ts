@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getSupabaseConfig, isSupabaseConfigured } from "../../lib/supabase/config";
+import { getSupabaseConfig, isDemoModeEnabled, isSupabaseConfigured, isTurnstileConfigured } from "../../lib/supabase/config";
 
 describe("Supabase configuration", () => {
   it("requires both public values before persistence is enabled", () => {
@@ -22,5 +22,12 @@ describe("Supabase configuration", () => {
 
     expect(config).toEqual({ url: "https://example.supabase.co", anonKey: "anon-key" });
     expect(() => getSupabaseConfig({})).toThrow("Supabase is not configured");
+  });
+
+  it("keeps demo mode and CAPTCHA configuration explicit", () => {
+    expect(isDemoModeEnabled({})).toBe(false);
+    expect(isDemoModeEnabled({ GENPHD_ALLOW_DEMO_MODE: "true" })).toBe(true);
+    expect(isTurnstileConfigured({})).toBe(false);
+    expect(isTurnstileConfigured({ NEXT_PUBLIC_TURNSTILE_SITE_KEY: "site-key" })).toBe(true);
   });
 });

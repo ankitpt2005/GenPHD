@@ -43,7 +43,12 @@ The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`
 3. Copy `.env.example` to `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 4. Run `supabase/migrations/0001_genphd_core.sql`, then `supabase/migrations/0002_decision_brief_persistence.sql`, in the Supabase SQL editor.
 5. Run `supabase/seed.sql` to load the shared competency and source catalog.
-6. Restart the app and use **Sign in** to create a private workspace. The app remains in demo mode until both public Supabase values are configured.
+6. Configure a Cloudflare Turnstile widget for your local and production hostnames. Add its public site key as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
+7. In Supabase **Authentication → Bot and Abuse Protection**, enable CAPTCHA, select **Cloudflare Turnstile**, and store the matching Turnstile secret there. Do not add that private key to the app.
+8. Enable email confirmation in Supabase Auth and add `http://localhost:3000/auth/callback` plus the production callback URL to the allowed redirect URLs.
+9. Restart the app and create an account from **Sign up**. Workspace routes are gated by verified Supabase claims and cannot be opened before authentication.
+
+`GENPHD_ALLOW_DEMO_MODE` is `false` by default. Set it to `true` only for local, non-production exploration without Supabase; never enable it in a deployed environment.
 
 The schema includes user-scoped Row Level Security for projects, decisions, decision options, claims, missions, reviews, skill evidence, and memory. The server always uses the signed-in user's session for workspace requests; it does not use the service role key for normal product flows.
 

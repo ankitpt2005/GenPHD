@@ -1,10 +1,10 @@
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { SignInForm } from "../../components/auth/sign-in-form";
-import { isSupabaseConfigured } from "../../lib/supabase/config";
+import { isSupabaseConfigured, isTurnstileConfigured } from "../../lib/supabase/config";
 
 export default function SignupPage() {
-  const isConfigured = isSupabaseConfigured();
+  const isConfigured = isSupabaseConfigured() && isTurnstileConfigured();
 
   return (
     <main className="auth-screen">
@@ -13,10 +13,9 @@ export default function SignupPage() {
         <div className="auth-mark">G</div>
         <p className="eyebrow">Your first project</p>
         <h1 id="signup-title">Start with one project.</h1>
-        <p className="auth-description">Create a private workspace, then add the goal and blocker that should shape your first recommendation.</p>
-        {isConfigured ? <SignInForm mode="signup" /> : <div className="auth-setup-note"><ShieldCheck aria-hidden="true" size={18} /><p><strong>Demo mode is active.</strong> You can begin the full setup without an account and connect Supabase later.</p></div>}
+        <p className="auth-description">Create a private workspace protected by a strong password, CAPTCHA verification, and server-validated sessions.</p>
+        {isConfigured ? <SignInForm mode="signup" redirectPath="/onboarding" /> : <div className="auth-setup-note"><ShieldCheck aria-hidden="true" size={18} /><p><strong>Secure sign-up is not configured.</strong> Add the Supabase public values and Turnstile site key before creating accounts.</p></div>}
         <p className="auth-switch">Already have a workspace? <Link href="/login">Sign in</Link>.</p>
-        {!isConfigured ? <Link className="button button-primary" href="/onboarding">Continue in demo mode</Link> : null}
       </section>
     </main>
   );

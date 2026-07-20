@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { safeWorkspacePath } from "../../../lib/auth/routes";
 import { isSupabaseConfigured } from "../../../lib/supabase/config";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const redirectUrl = new URL("/", requestUrl.origin);
+  const redirectUrl = new URL(safeWorkspacePath(requestUrl.searchParams.get("next"), "/dashboard"), requestUrl.origin);
   const code = requestUrl.searchParams.get("code");
 
   if (!isSupabaseConfigured() || !code) {

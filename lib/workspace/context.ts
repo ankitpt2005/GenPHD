@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { isSupabaseConfigured } from "../supabase/config";
+import { isDemoModeEnabled, isSupabaseConfigured } from "../supabase/config";
 import { createSupabaseServerClient } from "../supabase/server";
 
 export class AuthenticationRequiredError extends Error {
@@ -14,15 +14,17 @@ export type WorkspaceContext =
 
 export async function getWorkspaceContext(): Promise<WorkspaceContext> {
   if (!isSupabaseConfigured()) {
-    return { mode: "demo" };
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error || !data.user) {
+    if (isDemoModeEnabled()) return { mode: "demo" };
     throw new AuthenticationRequiredError();
   }
 
-  return { mode: "persistent", supabase, userId: data.user.id };
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+
+  if (error || !userId) {
+    throw new AuthenticationRequiredError();
+  }
+
+  return { mode: "persistent", supabase, userId };
 }

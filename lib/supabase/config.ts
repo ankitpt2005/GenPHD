@@ -5,12 +5,22 @@ export type SupabaseConfig = {
 
 type SupabaseEnvironment = {
   [key: string]: string | undefined;
+  GENPHD_ALLOW_DEMO_MODE?: string;
   NEXT_PUBLIC_SUPABASE_URL?: string;
   NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY?: string;
 };
 
 export function isSupabaseConfigured(environment: SupabaseEnvironment = process.env) {
   return Boolean(environment.NEXT_PUBLIC_SUPABASE_URL && environment.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+export function isTurnstileConfigured(environment: SupabaseEnvironment = process.env) {
+  return Boolean(environment.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+}
+
+export function isDemoModeEnabled(environment: SupabaseEnvironment = process.env) {
+  return environment.GENPHD_ALLOW_DEMO_MODE === "true";
 }
 
 export function getSupabaseConfig(environment: SupabaseEnvironment = process.env): SupabaseConfig {
