@@ -44,7 +44,9 @@ The schema includes user-scoped Row Level Security for projects, decisions, deci
 
 ## AI provider boundary
 
-`lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. The current deterministic provider is intentionally safe for local development and demo reliability. A live provider must return the same validated `DecisionBrief` schema and should be enabled only after `OPENAI_API_KEY` is configured.
+`lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. When `OPENROUTER_API_KEY` is set, GenPHD calls OpenRouter's multi-model auto router (`openrouter/auto-beta` by default) on the server. The output is validated, merged with fixed source evidence, and rejected in favor of the deterministic Decision Brief if it is malformed or unavailable. The key is never sent to the browser.
+
+`OPENROUTER_COST_QUALITY_TRADEOFF` accepts `0` (favor quality) through `10` (favor cost); the default is `6`. Set `OPENROUTER_MODEL` to a specific OpenRouter model slug when you want a fixed provider instead of the auto router.
 
 ## Verification
 
