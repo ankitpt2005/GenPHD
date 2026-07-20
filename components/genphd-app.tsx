@@ -220,7 +220,10 @@ function GuidedTour({ onClose, onNavigate }: { onClose: () => void; onNavigate: 
 
 export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: WorkspacePage }) {
   const router = useRouter();
-  const hasSecureAuth = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const hasSecureAuth = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+  );
   const [page, setPage] = useState<WorkspacePage>(initialPage);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

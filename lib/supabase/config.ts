@@ -7,12 +7,17 @@ type SupabaseEnvironment = {
   [key: string]: string | undefined;
   GENPHD_ALLOW_DEMO_MODE?: string;
   NEXT_PUBLIC_SUPABASE_URL?: string;
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?: string;
   NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
   NEXT_PUBLIC_TURNSTILE_SITE_KEY?: string;
 };
 
+function getPublicSupabaseKey(environment: SupabaseEnvironment) {
+  return environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? environment.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+}
+
 export function isSupabaseConfigured(environment: SupabaseEnvironment = process.env) {
-  return Boolean(environment.NEXT_PUBLIC_SUPABASE_URL && environment.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(environment.NEXT_PUBLIC_SUPABASE_URL && getPublicSupabaseKey(environment));
 }
 
 export function isTurnstileConfigured(environment: SupabaseEnvironment = process.env) {
@@ -25,10 +30,10 @@ export function isDemoModeEnabled(environment: SupabaseEnvironment = process.env
 
 export function getSupabaseConfig(environment: SupabaseEnvironment = process.env): SupabaseConfig {
   const url = environment.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = environment.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const anonKey = getPublicSupabaseKey(environment);
 
   if (!url || !anonKey) {
-    throw new Error("Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+    throw new Error("Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.");
   }
 
   return { url, anonKey };

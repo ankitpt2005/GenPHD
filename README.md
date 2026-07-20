@@ -38,9 +38,9 @@ The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`
 
 ## Supabase setup
 
-1. Create a Supabase project and enable Email (magic-link) sign-in in **Authentication**.
+1. Create a Supabase project and enable Email/password sign-in in **Authentication**.
 2. Add `http://localhost:3000/auth/callback` to the project's allowed redirect URLs. Add the production equivalent before deployment.
-3. Copy `.env.example` to `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+3. Copy `.env.example` to `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 4. Run `supabase/migrations/0001_genphd_core.sql`, then `supabase/migrations/0002_decision_brief_persistence.sql`, in the Supabase SQL editor.
 5. Run `supabase/seed.sql` to load the shared competency and source catalog.
 6. Configure a Cloudflare Turnstile widget for your local and production hostnames. Add its public site key as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.

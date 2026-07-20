@@ -2,13 +2,19 @@ import { describe, expect, it } from "vitest";
 import { getSupabaseConfig, isDemoModeEnabled, isSupabaseConfigured, isTurnstileConfigured } from "../../lib/supabase/config";
 
 describe("Supabase configuration", () => {
-  it("requires both public values before persistence is enabled", () => {
+  it("requires a URL and accepts a publishable or legacy public key", () => {
     expect(isSupabaseConfigured({})).toBe(false);
     expect(isSupabaseConfigured({ NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co" })).toBe(false);
     expect(
       isSupabaseConfigured({
         NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
+      }),
+    ).toBe(true);
+    expect(
+      isSupabaseConfigured({
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "legacy-anon-key",
       }),
     ).toBe(true);
   });
@@ -16,11 +22,11 @@ describe("Supabase configuration", () => {
   it("returns only the public client configuration", () => {
     const config = getSupabaseConfig({
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
       SUPABASE_SERVICE_ROLE_KEY: "server-only-key",
     });
 
-    expect(config).toEqual({ url: "https://example.supabase.co", anonKey: "anon-key" });
+    expect(config).toEqual({ url: "https://example.supabase.co", anonKey: "publishable-key" });
     expect(() => getSupabaseConfig({})).toThrow("Supabase is not configured");
   });
 
