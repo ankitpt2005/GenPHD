@@ -11,8 +11,9 @@ import {
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+const OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
-type LiveProviderMode = "openrouter" | "groq";
+type LiveProviderMode = "openrouter" | "groq" | "openai";
 
 const modelConfidenceSchema = z.union([z.string(), z.number()]).transform((value) => {
   if (typeof value === "number") {
@@ -188,7 +189,7 @@ class OpenAICompatibleDecisionProvider implements DecisionProvider {
 }
 
 class ResilientDecisionProvider implements DecisionProvider {
-  readonly mode: "openrouter" | "groq" | "multi";
+  readonly mode: LiveProviderMode | "multi";
 
   constructor(private readonly providers: OpenAICompatibleDecisionProvider[]) {
     this.mode = providers.length > 1 ? "multi" : providers[0]?.mode ?? "multi";
@@ -211,13 +212,16 @@ class ResilientDecisionProvider implements DecisionProvider {
 }
 
 function configuredProviders() {
-  const providerOrder = (process.env.GENPHD_DECISION_PROVIDERS ?? "openrouter,groq")
+  const providerOrder = (process.env.GENPHD_DECISION_PROVIDERS ?? "openrouter,groq,openai")
     .split(",")
     .map((provider) => provider.trim().toLowerCase())
-    .filter((provider): provider is LiveProviderMode => provider === "openrouter" || provider === "groq");
+    .filter((provider): provider is LiveProviderMode => (
+      provider === "openrouter" || provider === "groq" || provider === "openai"
+    ));
   const configured = new Map<LiveProviderMode, OpenAICompatibleDecisionProvider>();
   const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
   const groqKey = process.env.GROQ_API_KEY?.trim();
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
 
   if (openRouterKey) {
     configured.set("openrouter", new OpenAICompatibleDecisionProvider({
@@ -239,6 +243,15 @@ function configuredProviders() {
       endpoint: GROQ_ENDPOINT,
       mode: "groq",
       model: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
+    }));
+  }
+
+  if (openAiKey) {
+    configured.set("openai", new OpenAICompatibleDecisionProvider({
+      apiKey: openAiKey,
+      endpoint: OPENAI_ENDPOINT,
+      mode: "openai",
+      model: process.env.OPENAI_MODEL?.trim() || "gpt-5.6-sol",
     }));
   }
 

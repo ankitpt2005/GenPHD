@@ -44,9 +44,9 @@ The schema includes user-scoped Row Level Security for projects, decisions, deci
 
 ## AI provider boundary
 
-`lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. When `OPENROUTER_API_KEY` is set, GenPHD calls OpenRouter's multi-model auto router (`openrouter/auto-beta` by default) on the server. When `GROQ_API_KEY` is also set, Groq is the next fallback. Each response is validated, merged with fixed source evidence, and rejected in favor of the next provider—or the deterministic Decision Brief—if malformed or unavailable. Keys are never sent to the browser.
+`lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. When `OPENROUTER_API_KEY` is set, GenPHD calls OpenRouter's multi-model auto router (`openrouter/auto-beta` by default) on the server. Groq is the next fallback when `GROQ_API_KEY` is set, followed by OpenAI when `OPENAI_API_KEY` is set. Each response is validated, merged with fixed source evidence, and rejected in favor of the next provider—or the deterministic Decision Brief—if malformed or unavailable. Keys are never sent to the browser.
 
-`GENPHD_DECISION_PROVIDERS=openrouter,groq` controls provider priority. `OPENROUTER_COST_QUALITY_TRADEOFF` accepts `0` (favor quality) through `10` (favor cost); the default is `6`. Set `OPENROUTER_MODEL` or `GROQ_MODEL` to a specific model when needed.
+`GENPHD_DECISION_PROVIDERS=openrouter,groq,openai` controls provider priority. `OPENROUTER_COST_QUALITY_TRADEOFF` accepts `0` (favor quality) through `10` (favor cost); the default is `6`. Set `OPENROUTER_MODEL`, `GROQ_MODEL`, or `OPENAI_MODEL` to a specific model when needed. OpenAI defaults to `gpt-5.6-sol`.
 
 ## Verification
 
