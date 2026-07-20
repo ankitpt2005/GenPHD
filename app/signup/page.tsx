@@ -14,7 +14,7 @@ export default function SignupPage() {
         <p className="eyebrow">Your first project</p>
         <h1 id="signup-title">Start with one project.</h1>
         <p className="auth-description">Create a private workspace protected by a strong password, CAPTCHA verification, and server-validated sessions.</p>
-        {isConfigured ? <SignInForm mode="signup" redirectPath="/onboarding" /> : <div className="auth-setup-note"><ShieldCheck aria-hidden="true" size={18} /><p><strong>Secure sign-up is not configured.</strong> Add the Supabase public values and Turnstile site key before creating accounts.</p></div>}
+        {isConfigured ? <SignInForm mode="signup" redirectPath="/dashboard" /> : <div className="auth-setup-note"><ShieldCheck aria-hidden="true" size={18} /><p><strong>Secure sign-up is not configured.</strong> Add the Supabase public values and Turnstile site key before creating accounts.</p></div>}
         <p className="auth-switch">Already have a workspace? <Link href="/login">Sign in</Link>.</p>
       </section>
     </main>

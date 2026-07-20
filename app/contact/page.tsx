@@ -1,5 +1,5 @@
-import { ContactPage } from "../../components/secondary-pages";
+import { MarketingContactPage } from "../../components/marketing-pages";
 
 export default function ContactRoute() {
-  return <ContactPage />;
+  return <MarketingContactPage />;
 }

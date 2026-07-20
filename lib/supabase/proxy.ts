@@ -45,8 +45,7 @@ export async function updateSession(request: NextRequest) {
   if (isWorkspaceRoute && !isAuthenticated) return loginRedirect(request, response);
 
   if (isAuthRoute && isAuthenticated) {
-    const fallback = pathname === "/signup" ? "/onboarding" : "/dashboard";
-    const redirectUrl = new URL(safeWorkspacePath(request.nextUrl.searchParams.get("next"), fallback), request.url);
+    const redirectUrl = new URL(safeWorkspacePath(request.nextUrl.searchParams.get("next"), "/dashboard"), request.url);
     const redirectResponse = NextResponse.redirect(redirectUrl);
     response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
     return redirectResponse;

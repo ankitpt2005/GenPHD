@@ -29,7 +29,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: Sign
   const [resetSignal, setResetSignal] = useState(0);
   const isSignup = mode === "signup";
   const passwordIsStrong = isStrongPassword(password);
-  const actionLabel = isSignup ? "Create private workspace" : "Sign in securely";
+  const actionLabel = isSignup ? "Create account and continue" : "Sign in securely";
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +52,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: Sign
     try {
       if (isSignup) {
         const callbackUrl = new URL("/auth/callback", window.location.origin);
-        callbackUrl.searchParams.set("next", "/onboarding");
+        callbackUrl.searchParams.set("next", "/dashboard");
         const { data, error: authError } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
@@ -65,7 +65,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: Sign
         if (authError) throw authError;
 
         if (data.session) {
-          router.replace("/onboarding");
+          router.replace("/dashboard");
           router.refresh();
           return;
         }
@@ -100,7 +100,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: Sign
         <Mail aria-hidden="true" size={19} />
         <div>
           <strong>Confirm your email</strong>
-          <p>We sent a confirmation link to {email.trim()}. Open it in this browser to activate your private workspace.</p>
+          <p>We sent a confirmation link to {email.trim()}. Open it in this browser to activate your private workspace and continue to the dashboard.</p>
         </div>
       </div>
     );
