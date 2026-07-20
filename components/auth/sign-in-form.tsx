@@ -4,12 +4,13 @@ import { FormEvent, useMemo, useState } from "react";
 import { ArrowRight, Mail } from "lucide-react";
 import { createSupabaseBrowserClient } from "../../lib/supabase/browser";
 
-export function SignInForm() {
+export function SignInForm({ mode = "login" }: { mode?: "login" | "signup" }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const actionLabel = mode === "signup" ? "Create account with email" : "Email me a sign-in link";
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -18,7 +19,10 @@ export function SignInForm() {
 
     const { error: authError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        shouldCreateUser: mode === "signup",
+      },
     });
 
     if (authError) {
@@ -37,7 +41,7 @@ export function SignInForm() {
         <Mail aria-hidden="true" size={19} />
         <div>
           <strong>Check your inbox</strong>
-          <p>We sent a sign-in link to {email.trim()}. Open it in this browser to return to your workspace.</p>
+          <p>We sent a secure {mode === "signup" ? "account" : "sign-in"} link to {email.trim()}. Open it in this browser to continue.</p>
         </div>
       </div>
     );
@@ -58,7 +62,7 @@ export function SignInForm() {
       />
       {error ? <p className="inline-error" role="alert">{error}</p> : null}
       <button className="button button-primary" disabled={isSubmitting} type="submit">
-        {isSubmitting ? "Sending link…" : "Email me a sign-in link"}
+        {isSubmitting ? "Sending link..." : actionLabel}
         <ArrowRight aria-hidden="true" size={16} />
       </button>
     </form>

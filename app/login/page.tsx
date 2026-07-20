@@ -25,6 +25,7 @@ export default function LoginPage() {
             <p><strong>Demo mode is active.</strong> Add the Supabase URL and anon key to <code>.env.local</code>, then restart the app to enable private cloud workspaces.</p>
           </div>
         )}
+        <p className="auth-switch">New to GenPHD? <Link href="/signup">Start with one project</Link>.</p>
       </section>
     </main>
   );

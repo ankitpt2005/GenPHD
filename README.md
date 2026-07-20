@@ -15,17 +15,22 @@ Open `http://127.0.0.1:3000`.
 
 ## Current working flow
 
-1. Open the first-run guide to understand the three core actions.
-2. Ask a technical decision from the dashboard or Decisions view.
-3. The API validates the request and returns a typed, source-aware Decision Brief.
-4. Start the attached Build Mission.
-5. Complete the mission to record `Practicing` skill evidence and advance the roadmap.
+1. Start at the landing page, then use the three-step onboarding flow to record a goal, active project, time budget, and blocker.
+2. Optionally complete the short baseline diagnostic, then open the route-based dashboard.
+3. Ask a technical decision from the dashboard or Decisions view.
+4. The API validates the request and returns a typed, source-aware Decision Brief.
+5. Start the attached Build Mission, complete it, and review the updated roadmap and learning evidence.
+
+In demo mode, onboarding context is retained for the active browser session so the dashboard, project view, roadmap, and visible memory reflect the project just created. A configured Supabase workspace persists the same context privately for the signed-in user.
+
+The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`, `/dashboard`, `/roadmap`, `/consensus`, `/projects`, `/challenges`, `/timeline`, `/memory`, and `/settings`. The public account, policy, support, and recovery routes are also available from the UI Blueprint.
 
 ## Local API routes
 
 | Route | Purpose |
 |---|---|
 | `POST /api/decisions` | Validates a question and returns a Decision Brief |
+| `POST /api/onboarding` | Validates first-run project context and creates an initial three-step roadmap |
 | `POST /api/missions/complete` | Records a mission outcome and returns skill evidence |
 | `GET /api/projects/active` | Returns the active demo project |
 | `GET /api/roadmap` | Returns current roadmap milestones |

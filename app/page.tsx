@@ -1,5 +1,5 @@
-import { GenPHDApp } from "../components/genphd-app";
+import { LandingPage } from "../components/landing-page";
 
 export default function Home() {
-  return <GenPHDApp />;
+  return <LandingPage />;
 }

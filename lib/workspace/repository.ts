@@ -5,6 +5,12 @@ import type { DecisionBrief } from "../decision/types";
 import { completeMission, missionCompletionSchema, type CompleteMissionInput } from "../missions/complete";
 import type { WorkspaceContext } from "./context";
 import {
+  createDemoOnboardingResult,
+  createInitialRoadmap,
+  onboardingResultSchema,
+  type OnboardingInput,
+} from "./onboarding";
+import {
   activeProjectSchema,
   decisionStateSchema,
   memoryItemSchema,
@@ -178,6 +184,80 @@ async function ensureActiveProject(supabase: SupabaseClient, userId: string) {
 export async function getActiveProject(context: WorkspaceContext) {
   if (context.mode === "demo") return demoProject;
   return ensureActiveProject(context.supabase, context.userId);
+}
+
+export async function completeOnboarding(context: WorkspaceContext, input: OnboardingInput) {
+  if (context.mode === "demo") return createDemoOnboardingResult(input);
+
+  const profile = await context.supabase.from("profiles").upsert({
+    id: context.userId,
+    career_goal: input.goal,
+    weekly_hours: input.weeklyHours,
+  });
+  requireSuccess(profile.error);
+
+  const deactivateExisting = await context.supabase
+    .from("projects")
+    .update({ is_active: false })
+    .eq("user_id", context.userId)
+    .eq("is_active", true);
+  requireSuccess(deactivateExisting.error);
+
+  const projectResult = await context.supabase
+    .from("projects")
+    .insert({
+      user_id: context.userId,
+      name: input.projectName,
+      outcome: input.projectDescription,
+      stack: input.stack,
+      constraints: [input.blocker, `${input.weeklyHours} hours available this week`],
+      is_active: true,
+    })
+    .select("id, name, outcome, stack, constraints")
+    .single();
+  requireSuccess(projectResult.error);
+
+  const project = toActiveProject(activeProjectRowSchema.parse(projectResult.data));
+  const milestones = createInitialRoadmap(input);
+  const missionResult = await context.supabase.from("build_missions").insert(
+    milestones.map((milestone) => ({
+      user_id: context.userId,
+      project_id: project.id,
+      competency_id: competencyIdFor(milestone.competency),
+      title: milestone.title,
+      objective: milestone.detail,
+      estimate_minutes: milestone.estimateMinutes,
+      status: "not_started",
+    })),
+  );
+  requireSuccess(missionResult.error);
+
+  const memoryResult = await context.supabase.from("memory_items").insert([
+    {
+      user_id: context.userId,
+      project_id: project.id,
+      category: "profile",
+      label: "Career goal",
+      value: input.goal,
+      provenance: "user",
+      confidence: "high",
+    },
+    {
+      user_id: context.userId,
+      project_id: project.id,
+      category: "project",
+      label: "Current blocker",
+      value: input.blocker,
+      provenance: "user",
+      confidence: "high",
+    },
+  ]);
+  requireSuccess(memoryResult.error);
+
+  return onboardingResultSchema.parse({
+    project: { ...project, weeklyHours: input.weeklyHours },
+    milestones,
+  });
 }
 
 export async function getRoadmap(context: WorkspaceContext) {
