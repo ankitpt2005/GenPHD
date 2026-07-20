@@ -503,7 +503,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${page === "dashboard" ? "dashboard-shell" : ""}`}>
       <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
         <div className="sidebar-top">
           <button className="brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
@@ -542,6 +542,10 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
             <span>Search workspace</span>
             <kbd>⌘ K</kbd>
           </button>
+          <button className="sidebar-search" onClick={() => setIsCommandOpen(true)} type="button">
+            <Search aria-hidden="true" size={14} />
+            <span>Search workspace</span>
+          </button>
           <button className="user-button" type="button" onClick={() => navigate("settings")}>
             <span className="avatar">AP</span>
             <span>
@@ -561,7 +565,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
             <Menu size={19} />
           </button>
           <div className="topbar-context">
-            <span>DocuQuery</span>
+            <span>{project.name}</span>
             <ChevronRight size={14} aria-hidden="true" />
             <strong>{navItems.find((item) => item.id === page)?.label ?? "Dashboard"}</strong>
           </div>
@@ -577,7 +581,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
               <span className="notification-dot" aria-hidden="true" />
             </button>
             <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>
-            <button className="avatar topbar-avatar" type="button" aria-label="Open profile">AP</button>
+            <button className="avatar topbar-avatar" onClick={() => router.push("/profile")} type="button" aria-label="Open profile">AP</button>
           </div>
         </header>
 

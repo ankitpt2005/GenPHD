@@ -1899,6 +1899,385 @@ kbd {
   }
 }
 
+.sidebar-search {
+  display: none;
+}
+
+/* Dashboard reference layout: compact navigation, one clear action, and a quiet evidence rail. */
+.dashboard-shell {
+  --sidebar-width: 154px;
+  background: #090e14;
+}
+
+.dashboard-shell .sidebar {
+  border-color: #1e2731;
+  background: #0b1016;
+}
+
+.dashboard-shell .sidebar-top {
+  height: 32px;
+  padding: 0 9px 0 13px;
+}
+
+.dashboard-shell .brand {
+  gap: 5px;
+}
+
+.dashboard-shell .brand-mark {
+  width: 17px;
+  height: 17px;
+  border-color: #313a45;
+  border-radius: 5px;
+  background: #171d24;
+  font-size: 9px;
+}
+
+.dashboard-shell .brand-name {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dashboard-shell .icon-button {
+  width: 27px;
+  height: 27px;
+  border-radius: 5px;
+}
+
+.dashboard-shell .project-switcher {
+  gap: 6px;
+  margin: 12px 6px 9px;
+  padding: 8px 9px;
+  border-color: #222c36;
+  border-radius: 6px;
+}
+
+.dashboard-shell .project-switcher strong {
+  font-size: 10px;
+}
+
+.dashboard-shell .project-label {
+  font-size: 8px;
+}
+
+.dashboard-shell .project-dot {
+  width: 5px;
+  height: 5px;
+}
+
+.dashboard-shell .main-nav {
+  gap: 0;
+  padding: 0 5px;
+}
+
+.dashboard-shell .nav-button {
+  min-height: 27px;
+  gap: 7px;
+  padding: 5px 7px;
+  border-radius: 4px;
+}
+
+.dashboard-shell .nav-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+.dashboard-shell .nav-button span {
+  font-size: 10px;
+}
+
+.dashboard-shell .nav-button:hover,
+.dashboard-shell .nav-button.is-active {
+  background: #1a2027;
+}
+
+.dashboard-shell .sidebar-bottom {
+  gap: 4px;
+  padding: 10px 5px 8px;
+  border-color: #1e2731;
+}
+
+.dashboard-shell .shortcut-button {
+  min-height: 24px;
+  gap: 7px;
+  padding: 4px 6px;
+  font-size: 9px;
+}
+
+.dashboard-shell .shortcut-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+.dashboard-shell kbd {
+  font-size: 8px;
+}
+
+.dashboard-shell .sidebar-search {
+  display: flex;
+  width: 100%;
+  min-height: 27px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #26313c;
+  border-radius: 5px;
+  background: #151b22;
+  color: #8f9aa8;
+  padding: 5px 7px;
+  text-align: left;
+}
+
+.dashboard-shell .sidebar-search span {
+  font-size: 9px;
+}
+
+.dashboard-shell .sidebar-search:hover {
+  border-color: #465260;
+  color: var(--text-primary);
+}
+
+.dashboard-shell .user-button {
+  display: none;
+}
+
+.dashboard-shell .app-main {
+  background: #090e14;
+}
+
+.dashboard-shell .topbar {
+  height: 32px;
+  border-color: #1e2731;
+  padding: 0 20px;
+}
+
+.dashboard-shell .topbar-context {
+  gap: 5px;
+  font-size: 9px;
+}
+
+.dashboard-shell .topbar-context svg {
+  width: 11px;
+  height: 11px;
+}
+
+.dashboard-shell .topbar-actions {
+  gap: 1px;
+}
+
+.dashboard-shell .topbar-actions .icon-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+.dashboard-shell .topbar-avatar {
+  width: 21px;
+  height: 21px;
+  margin-left: 3px;
+  font-size: 8px;
+}
+
+.dashboard-shell .sign-in-link {
+  min-height: 24px;
+  margin-left: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 9px;
+  line-height: 16px;
+}
+
+.dashboard-shell .notification-dot {
+  top: 5px;
+  right: 5px;
+  width: 4px;
+  height: 4px;
+}
+
+.dashboard-shell .page-container {
+  width: min(1000px, 100%);
+  padding: 32px 40px 52px 76px;
+}
+
+.dashboard-shell .page-title {
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.dashboard-shell .page-title h1 {
+  margin: 2px 0 4px;
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+.dashboard-shell .page-description {
+  max-width: 540px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.dashboard-shell .eyebrow {
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+
+.dashboard-shell .button {
+  min-height: 28px;
+  gap: 6px;
+  border-radius: 5px;
+  padding: 4px 9px;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.dashboard-shell .button svg {
+  width: 13px;
+  height: 13px;
+}
+
+.dashboard-shell .desktop-action {
+  white-space: nowrap;
+}
+
+.dashboard-shell .dashboard-layout {
+  grid-template-columns: minmax(0, 1fr) 185px;
+  gap: 36px;
+}
+
+.dashboard-shell .mission-card {
+  min-height: 205px;
+  border-color: #3d4753;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #27313a, #1d2329 72%);
+  box-shadow: 0 14px 30px rgb(0 0 0 / 18%);
+  padding: 16px;
+}
+
+.dashboard-shell .mission-kicker,
+.dashboard-shell .time-estimate,
+.dashboard-shell .quiet-label {
+  font-size: 9px;
+}
+
+.dashboard-shell .mission-card h2 {
+  margin: 5px 0 4px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.dashboard-shell .mission-card > p {
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.dashboard-shell .acceptance-list {
+  gap: 6px;
+  margin: 12px 0 13px;
+}
+
+.dashboard-shell .acceptance-list li {
+  gap: 6px;
+  font-size: 10px;
+}
+
+.dashboard-shell .acceptance-list li svg {
+  width: 12px;
+  height: 12px;
+}
+
+.dashboard-shell .mission-actions {
+  gap: 7px;
+}
+
+.dashboard-shell .context-rail {
+  border: 1px solid #303a45;
+  border-radius: 6px;
+  background: #1b2128;
+  padding: 14px 15px;
+}
+
+.dashboard-shell .rail-section {
+  padding: 0 0 13px;
+}
+
+.dashboard-shell .rail-section + .rail-section {
+  padding-top: 13px;
+}
+
+.dashboard-shell .context-rail .eyebrow,
+.dashboard-shell .context-rail .text-link,
+.dashboard-shell .skill-row,
+.dashboard-shell .skill-row strong,
+.dashboard-shell .signal-score small {
+  line-height: 1.2;
+}
+
+.dashboard-shell .signal-score {
+  gap: 5px;
+  margin: 7px 0 8px;
+}
+
+.dashboard-shell .signal-score span {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.dashboard-shell .signal-score small,
+.dashboard-shell .skill-row,
+.dashboard-shell .skill-row strong,
+.dashboard-shell .text-link {
+  font-size: 9px;
+}
+
+.dashboard-shell .progress-line {
+  margin-bottom: 8px;
+}
+
+.dashboard-shell .skill-section {
+  gap: 7px;
+}
+
+.dashboard-shell .section-block {
+  margin-top: 24px;
+}
+
+.dashboard-shell .section-heading {
+  margin-bottom: 9px;
+}
+
+.dashboard-shell .section-heading h2 {
+  font-size: 13px;
+}
+
+.dashboard-shell .decision-summary {
+  gap: 10px;
+  padding: 12px 0;
+}
+
+.dashboard-shell .summary-icon {
+  width: 25px;
+  height: 25px;
+  border-radius: 5px;
+}
+
+.dashboard-shell .summary-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.dashboard-shell .decision-summary p {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.dashboard-shell .summary-meta,
+.dashboard-shell .confidence {
+  margin-top: 5px;
+  font-size: 8px;
+}
+
+.dashboard-shell .flat-row {
+  border-radius: 6px;
+  padding: 10px;
+}
+
 @keyframes pulse {
   0%,
   100% {
