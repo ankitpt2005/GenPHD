@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { seedDecisionBrief } from "../lib/decision/brief";
 import { decisionBriefSchema, type DecisionBrief } from "../lib/decision/types";
+import { getBrowserPublicRuntimeConfig } from "../lib/runtime/public-config.client";
 import { SignOutButton } from "./auth/sign-out-button";
 import { z } from "zod";
 import {
@@ -220,10 +221,8 @@ function GuidedTour({ onClose, onNavigate }: { onClose: () => void; onNavigate: 
 
 export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: WorkspacePage }) {
   const router = useRouter();
-  const hasSecureAuth = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-  );
+  const publicRuntimeConfig = getBrowserPublicRuntimeConfig();
+  const hasSecureAuth = Boolean(publicRuntimeConfig.supabaseUrl && publicRuntimeConfig.supabasePublishableKey);
   const [page, setPage] = useState<WorkspacePage>(initialPage);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

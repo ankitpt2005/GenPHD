@@ -3,6 +3,12 @@ export type SupabaseConfig = {
   anonKey: string;
 };
 
+export type PublicRuntimeConfig = {
+  supabasePublishableKey?: string;
+  supabaseUrl?: string;
+  turnstileSiteKey?: string;
+};
+
 type SupabaseEnvironment = {
   [key: string]: string | undefined;
   GENPHD_ALLOW_DEMO_MODE?: string;
@@ -14,6 +20,14 @@ type SupabaseEnvironment = {
 
 function getPublicSupabaseKey(environment: SupabaseEnvironment) {
   return environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? environment.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+}
+
+export function getPublicRuntimeConfig(environment: SupabaseEnvironment = process.env): PublicRuntimeConfig {
+  return {
+    supabasePublishableKey: getPublicSupabaseKey(environment),
+    supabaseUrl: environment.NEXT_PUBLIC_SUPABASE_URL,
+    turnstileSiteKey: environment.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+  };
 }
 
 export function isSupabaseConfigured(environment: SupabaseEnvironment = process.env) {

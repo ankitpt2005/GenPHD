@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { ArrowRight, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -18,7 +18,6 @@ function isStrongPassword(password: string) {
 
 export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: SignInFormProps) {
   const router = useRouter();
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -48,6 +47,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: Sign
 
     setIsSubmitting(true);
     const normalizedEmail = email.trim();
+    const supabase = createSupabaseBrowserClient();
 
     try {
       if (isSignup) {

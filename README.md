@@ -62,7 +62,7 @@ This repository includes a compact, multi-stage Docker deployment through `rende
 4. Put the widget's **site key** in Render as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. Put its **secret key only in Supabase** under **Authentication → Bot and Abuse Protection → CAPTCHA**; never place that secret in Render or this repository.
 5. In Supabase **Authentication → URL Configuration**, set the Site URL to the Render HTTPS URL and add `https://your-render-host/auth/callback` to Redirect URLs. Enable email confirmation and the Email/password provider.
 
-`NEXT_PUBLIC_*` values are compiled into the browser bundle. After changing any of them in Render, choose **Save, rebuild, and deploy**.
+The server injects the browser-safe Supabase and Turnstile values at runtime. After changing them in Render, choose **Save and deploy**; secret values are never emitted to the browser.
 
 ## AI provider boundary
 

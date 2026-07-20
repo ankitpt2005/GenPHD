@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
+import { getBrowserPublicRuntimeConfig } from "../../lib/runtime/public-config.client";
 
 type TurnstileApi = {
   render: (container: HTMLElement, options: {
@@ -28,7 +29,7 @@ type TurnstileProps = {
 };
 
 export function Turnstile({ onError, onTokenChange, resetSignal }: TurnstileProps) {
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const siteKey = getBrowserPublicRuntimeConfig().turnstileSiteKey;
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
