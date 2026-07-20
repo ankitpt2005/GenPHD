@@ -1905,7 +1905,7 @@ kbd {
 
 /* Dashboard reference layout: compact navigation, one clear action, and a quiet evidence rail. */
 .dashboard-shell {
-  --sidebar-width: 154px;
+  --sidebar-width: 168px;
   background: #090e14;
 }
 
@@ -1915,7 +1915,7 @@ kbd {
 }
 
 .dashboard-shell .sidebar-top {
-  height: 32px;
+  height: 36px;
   padding: 0 9px 0 13px;
 }
 
@@ -1924,22 +1924,22 @@ kbd {
 }
 
 .dashboard-shell .brand-mark {
-  width: 17px;
-  height: 17px;
+  width: 19px;
+  height: 19px;
   border-color: #313a45;
   border-radius: 5px;
   background: #171d24;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .dashboard-shell .brand-name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
 .dashboard-shell .icon-button {
-  width: 27px;
-  height: 27px;
+  width: 30px;
+  height: 30px;
   border-radius: 5px;
 }
 
@@ -1952,11 +1952,11 @@ kbd {
 }
 
 .dashboard-shell .project-switcher strong {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .dashboard-shell .project-label {
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .dashboard-shell .project-dot {
@@ -1970,19 +1970,19 @@ kbd {
 }
 
 .dashboard-shell .nav-button {
-  min-height: 27px;
+  min-height: 30px;
   gap: 7px;
   padding: 5px 7px;
   border-radius: 4px;
 }
 
 .dashboard-shell .nav-button svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
 }
 
 .dashboard-shell .nav-button span {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .dashboard-shell .nav-button:hover,
@@ -1997,15 +1997,15 @@ kbd {
 }
 
 .dashboard-shell .shortcut-button {
-  min-height: 24px;
+  min-height: 27px;
   gap: 7px;
   padding: 4px 6px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .dashboard-shell .shortcut-button svg {
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
 }
 
 .dashboard-shell kbd {
@@ -2015,7 +2015,7 @@ kbd {
 .dashboard-shell .sidebar-search {
   display: flex;
   width: 100%;
-  min-height: 27px;
+  min-height: 30px;
   align-items: center;
   gap: 6px;
   border: 1px solid #26313c;
@@ -2027,7 +2027,7 @@ kbd {
 }
 
 .dashboard-shell .sidebar-search span {
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .dashboard-shell .sidebar-search:hover {
@@ -2044,14 +2044,14 @@ kbd {
 }
 
 .dashboard-shell .topbar {
-  height: 32px;
+  height: 36px;
   border-color: #1e2731;
   padding: 0 20px;
 }
 
 .dashboard-shell .topbar-context {
   gap: 5px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .dashboard-shell .topbar-context svg {
@@ -2064,23 +2064,23 @@ kbd {
 }
 
 .dashboard-shell .topbar-actions .icon-button svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
 }
 
 .dashboard-shell .topbar-avatar {
-  width: 21px;
-  height: 21px;
+  width: 23px;
+  height: 23px;
   margin-left: 3px;
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .dashboard-shell .sign-in-link {
-  min-height: 24px;
+  min-height: 27px;
   margin-left: 4px;
   padding: 2px 7px;
   border-radius: 5px;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 16px;
 }
 
@@ -2092,8 +2092,8 @@ kbd {
 }
 
 .dashboard-shell .page-container {
-  width: min(1000px, 100%);
-  padding: 32px 40px 52px 76px;
+  width: min(1060px, 100%);
+  padding: 38px 40px 64px 72px;
 }
 
 .dashboard-shell .page-title {
@@ -2103,27 +2103,27 @@ kbd {
 
 .dashboard-shell .page-title h1 {
   margin: 2px 0 4px;
-  font-size: 21px;
+  font-size: 24px;
   line-height: 1.25;
 }
 
 .dashboard-shell .page-description {
   max-width: 540px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
 .dashboard-shell .eyebrow {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.06em;
 }
 
 .dashboard-shell .button {
-  min-height: 28px;
+  min-height: 32px;
   gap: 6px;
   border-radius: 5px;
   padding: 4px 9px;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 16px;
 }
 
@@ -2137,33 +2137,37 @@ kbd {
 }
 
 .dashboard-shell .dashboard-layout {
-  grid-template-columns: minmax(0, 1fr) 185px;
-  gap: 36px;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: 40px;
+}
+
+.dashboard-shell .reading-column {
+  width: min(820px, 100%);
 }
 
 .dashboard-shell .mission-card {
-  min-height: 205px;
+  min-height: 220px;
   border-color: #3d4753;
   border-radius: 6px;
   background: linear-gradient(135deg, #27313a, #1d2329 72%);
   box-shadow: 0 14px 30px rgb(0 0 0 / 18%);
-  padding: 16px;
+  padding: 18px;
 }
 
 .dashboard-shell .mission-kicker,
 .dashboard-shell .time-estimate,
 .dashboard-shell .quiet-label {
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .dashboard-shell .mission-card h2 {
   margin: 5px 0 4px;
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.3;
 }
 
 .dashboard-shell .mission-card > p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -2174,7 +2178,7 @@ kbd {
 
 .dashboard-shell .acceptance-list li {
   gap: 6px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .dashboard-shell .acceptance-list li svg {
@@ -2190,7 +2194,7 @@ kbd {
   border: 1px solid #303a45;
   border-radius: 6px;
   background: #1b2128;
-  padding: 14px 15px;
+  padding: 16px 17px;
 }
 
 .dashboard-shell .rail-section {
@@ -2215,7 +2219,7 @@ kbd {
 }
 
 .dashboard-shell .signal-score span {
-  font-size: 22px;
+  font-size: 25px;
   line-height: 1;
 }
 
@@ -2223,7 +2227,7 @@ kbd {
 .dashboard-shell .skill-row,
 .dashboard-shell .skill-row strong,
 .dashboard-shell .text-link {
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .dashboard-shell .progress-line {
@@ -2243,7 +2247,7 @@ kbd {
 }
 
 .dashboard-shell .section-heading h2 {
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .dashboard-shell .decision-summary {
@@ -2263,14 +2267,14 @@ kbd {
 }
 
 .dashboard-shell .decision-summary p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
 .dashboard-shell .summary-meta,
 .dashboard-shell .confidence {
   margin-top: 5px;
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .dashboard-shell .flat-row {

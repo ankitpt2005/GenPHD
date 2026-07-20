@@ -503,7 +503,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   };
 
   return (
-    <div className={`app-shell ${page === "dashboard" ? "dashboard-shell" : ""}`}>
+    <div className="app-shell dashboard-shell">
       <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
         <div className="sidebar-top">
           <button className="brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
