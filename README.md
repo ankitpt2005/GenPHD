@@ -52,6 +52,18 @@ The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`
 
 The schema includes user-scoped Row Level Security for projects, decisions, decision options, claims, missions, reviews, skill evidence, and memory. The server always uses the signed-in user's session for workspace requests; it does not use the service role key for normal product flows.
 
+## Deploy to Render
+
+This repository includes a compact, multi-stage Docker deployment through `render.yaml`. It builds Next.js in standalone mode and ships only the traced production server and static assets—never local `node_modules`, `.next`, or `.env` files.
+
+1. Push the repository, then create a **Blueprint** from `render.yaml` in Render. The service targets the Singapore region and exposes `/api/health` as its health check.
+2. In Render, enter the prompted environment values: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `NEXT_PUBLIC_SITE_URL`, and the AI-provider keys you intend to use. Keep `GENPHD_ALLOW_DEMO_MODE=false`.
+3. Create a Cloudflare Turnstile widget in **Managed** mode. Add the Render hostname only (for example, `genphd.onrender.com`—no protocol, path, or port) and use a separate widget for local development.
+4. Put the widget's **site key** in Render as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. Put its **secret key only in Supabase** under **Authentication → Bot and Abuse Protection → CAPTCHA**; never place that secret in Render or this repository.
+5. In Supabase **Authentication → URL Configuration**, set the Site URL to the Render HTTPS URL and add `https://your-render-host/auth/callback` to Redirect URLs. Enable email confirmation and the Email/password provider.
+
+`NEXT_PUBLIC_*` values are compiled into the browser bundle. After changing any of them in Render, choose **Save, rebuild, and deploy**.
+
 ## AI provider boundary
 
 `lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. When `OPENROUTER_API_KEY` is set, GenPHD calls OpenRouter's multi-model auto router (`openrouter/auto-beta` by default) on the server. Groq is the next fallback when `GROQ_API_KEY` is set, followed by OpenAI when `OPENAI_API_KEY` is set. Each response is validated, merged with fixed source evidence, and rejected in favor of the next provider—or the deterministic Decision Brief—if malformed or unavailable. Keys are never sent to the browser.
