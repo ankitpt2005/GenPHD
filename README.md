@@ -1,6 +1,8 @@
 # GenPHD
 
-GenPHD is a decision-intelligence workspace for AI engineers. It turns an active project question into an evidence-aware Decision Brief, a focused Build Mission, and updated learning evidence.
+GenPHD is an AI-powered learning companion that accelerates personalized human development through adaptive learning, trusted AI guidance, and continuously evolving skill roadmaps.
+
+It is a decision-intelligence workspace for AI engineers: turn an active project question into an evidence-aware Decision Brief, a focused Build Mission, and updated learning evidence.
 
 ## Run locally
 
