@@ -2282,6 +2282,145 @@ kbd {
   padding: 10px;
 }
 
+@media (min-width: 1280px) {
+  .dashboard-shell {
+    --sidebar-width: 184px;
+  }
+
+  .dashboard-shell .sidebar-top,
+  .dashboard-shell .topbar {
+    height: 42px;
+  }
+
+  .dashboard-shell .brand-mark {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .dashboard-shell .brand-name {
+    font-size: 14px;
+  }
+
+  .dashboard-shell .project-switcher {
+    margin-top: 16px;
+    padding: 10px;
+  }
+
+  .dashboard-shell .nav-button {
+    min-height: 35px;
+    padding: 6px 9px;
+  }
+
+  .dashboard-shell .nav-button span {
+    font-size: 12px;
+  }
+
+  .dashboard-shell .page-container {
+    width: min(1240px, 100%);
+    padding: 46px 56px 80px 88px;
+  }
+
+  .dashboard-shell .page-title {
+    margin-bottom: 30px;
+  }
+
+  .dashboard-shell .page-title h1 {
+    font-size: 30px;
+  }
+
+  .dashboard-shell .page-description {
+    max-width: 680px;
+    font-size: 14px;
+  }
+
+  .dashboard-shell .eyebrow {
+    font-size: 10px;
+  }
+
+  .dashboard-shell .button {
+    min-height: 38px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .dashboard-shell .dashboard-layout {
+    grid-template-columns: minmax(0, 1fr) 230px;
+    gap: 48px;
+  }
+
+  .dashboard-shell .reading-column {
+    width: min(900px, 100%);
+  }
+
+  .dashboard-shell .mission-card {
+    min-height: 250px;
+    padding: 22px;
+  }
+
+  .dashboard-shell .mission-kicker,
+  .dashboard-shell .time-estimate,
+  .dashboard-shell .quiet-label {
+    font-size: 12px;
+  }
+
+  .dashboard-shell .mission-card h2 {
+    margin-top: 8px;
+    font-size: 20px;
+  }
+
+  .dashboard-shell .mission-card > p,
+  .dashboard-shell .decision-summary p {
+    font-size: 14px;
+  }
+
+  .dashboard-shell .acceptance-list {
+    gap: 8px;
+    margin: 18px 0;
+  }
+
+  .dashboard-shell .acceptance-list li {
+    font-size: 13px;
+  }
+
+  .dashboard-shell .context-rail {
+    padding: 20px 21px;
+  }
+
+  .dashboard-shell .signal-score span {
+    font-size: 30px;
+  }
+
+  .dashboard-shell .signal-score small,
+  .dashboard-shell .skill-row,
+  .dashboard-shell .skill-row strong,
+  .dashboard-shell .text-link {
+    font-size: 12px;
+  }
+
+  .dashboard-shell .section-block {
+    margin-top: 32px;
+  }
+
+  .dashboard-shell .section-heading h2 {
+    font-size: 18px;
+  }
+
+  .dashboard-shell .summary-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dashboard-shell .summary-meta,
+  .dashboard-shell .confidence {
+    font-size: 11px;
+  }
+
+  .dashboard-shell .flat-row {
+    padding: 14px;
+  }
+}
+
 @keyframes pulse {
   0%,
   100% {
