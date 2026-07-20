@@ -44,9 +44,9 @@ The schema includes user-scoped Row Level Security for projects, decisions, deci
 
 ## AI provider boundary
 
-`lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. When `OPENROUTER_API_KEY` is set, GenPHD calls OpenRouter's multi-model auto router (`openrouter/auto-beta` by default) on the server. The output is validated, merged with fixed source evidence, and rejected in favor of the deterministic Decision Brief if it is malformed or unavailable. The key is never sent to the browser.
+`lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. When `OPENROUTER_API_KEY` is set, GenPHD calls OpenRouter's multi-model auto router (`openrouter/auto-beta` by default) on the server. When `GROQ_API_KEY` is also set, Groq is the next fallback. Each response is validated, merged with fixed source evidence, and rejected in favor of the next provider—or the deterministic Decision Brief—if malformed or unavailable. Keys are never sent to the browser.
 
-`OPENROUTER_COST_QUALITY_TRADEOFF` accepts `0` (favor quality) through `10` (favor cost); the default is `6`. Set `OPENROUTER_MODEL` to a specific OpenRouter model slug when you want a fixed provider instead of the auto router.
+`GENPHD_DECISION_PROVIDERS=openrouter,groq` controls provider priority. `OPENROUTER_COST_QUALITY_TRADEOFF` accepts `0` (favor quality) through `10` (favor cost); the default is `6`. Set `OPENROUTER_MODEL` or `GROQ_MODEL` to a specific model when needed.
 
 ## Verification
 

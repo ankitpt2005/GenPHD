@@ -10,6 +10,9 @@ import {
 } from "./types";
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+
+type LiveProviderMode = "openrouter" | "groq";
 
 const modelConfidenceSchema = z.union([z.string(), z.number()]).transform((value) => {
   if (typeof value === "number") {
@@ -59,15 +62,24 @@ const modelDecisionSchema = z.object({
   }),
 });
 
-const openRouterResponseSchema = z.object({
+const openAiCompatibleResponseSchema = z.object({
   choices: z.array(z.object({ message: z.object({ content: z.string().nullable() }) })).min(1),
 });
 
 type ModelDecision = z.infer<typeof modelDecisionSchema>;
 
+type OpenAICompatibleProviderConfig = {
+  apiKey: string;
+  endpoint: string;
+  extraHeaders?: Record<string, string>;
+  mode: LiveProviderMode;
+  model: string;
+  requestExtras?: Record<string, unknown>;
+};
+
 export type DecisionProvider = {
   createBrief(input: CreateDecisionInput): Promise<DecisionBrief>;
-  mode: "deterministic" | "openrouter";
+  mode: "deterministic" | LiveProviderMode | "multi";
 };
 
 class DeterministicDecisionProvider implements DecisionProvider {
@@ -107,7 +119,7 @@ Trusted evidence:
 ${sources}`;
 }
 
-function mergeModelDecision(baseline: DecisionBrief, decision: ModelDecision): DecisionBrief {
+function mergeModelDecision(baseline: DecisionBrief, decision: ModelDecision, mode: LiveProviderMode): DecisionBrief {
   return decisionBriefSchema.parse({
     ...baseline,
     ...decision,
@@ -119,14 +131,16 @@ function mergeModelDecision(baseline: DecisionBrief, decision: ModelDecision): D
     conflicts: decision.conflicts.slice(0, 3),
     evidence: baseline.evidence,
     createdAt: new Date().toISOString(),
-    promptVersion: "openrouter-decision-v1",
+    promptVersion: `${mode}-decision-v1`,
   });
 }
 
-class OpenRouterDecisionProvider implements DecisionProvider {
-  mode = "openrouter" as const;
+class OpenAICompatibleDecisionProvider implements DecisionProvider {
+  readonly mode: LiveProviderMode;
 
-  constructor(private readonly apiKey: string, private readonly model: string) {}
+  constructor(private readonly config: OpenAICompatibleProviderConfig) {
+    this.mode = config.mode;
+  }
 
   async createBrief(input: CreateDecisionInput) {
     const baseline = createDecisionBrief(input);
@@ -134,16 +148,15 @@ class OpenRouterDecisionProvider implements DecisionProvider {
     const timeout = setTimeout(() => controller.abort(), 30_000);
 
     try {
-      const response = await fetch(OPENROUTER_ENDPOINT, {
+      const response = await fetch(this.config.endpoint, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-          "X-OpenRouter-Title": "GenPHD",
+          ...this.config.extraHeaders,
         },
         body: JSON.stringify({
-          model: this.model,
+          model: this.config.model,
           messages: [
             { role: "system", content: "You return strictly valid JSON for a typed product workflow." },
             { role: "user", content: buildPrompt(input, baseline) },
@@ -151,40 +164,91 @@ class OpenRouterDecisionProvider implements DecisionProvider {
           temperature: 0.2,
           max_tokens: 2_200,
           response_format: { type: "json_object" },
-          plugins: [{ id: "auto-router", cost_quality_tradeoff: costQualityTradeoff() }],
+          ...this.config.requestExtras,
         }),
         signal: controller.signal,
       });
 
       if (!response.ok) {
-        throw new Error("OpenRouter request failed.");
+        throw new Error(`${this.mode} request failed.`);
       }
 
-      const payload = openRouterResponseSchema.parse(await response.json());
+      const payload = openAiCompatibleResponseSchema.parse(await response.json());
       const content = payload.choices[0]?.message.content;
       if (!content) {
-        throw new Error("OpenRouter returned no decision content.");
+        throw new Error(`${this.mode} returned no decision content.`);
       }
 
       const decision = modelDecisionSchema.parse(JSON.parse(stripCodeFence(content)));
-      return mergeModelDecision(baseline, decision);
-    } catch (error) {
-      if (process.env.NODE_ENV !== "production") {
-        const reason = error instanceof Error ? `${error.name}: ${error.message}` : "UnknownError";
-        console.warn(`[GenPHD] OpenRouter Decision Brief fallback: ${reason}`);
-      }
-      return baseline;
+      return mergeModelDecision(baseline, decision, this.mode);
     } finally {
       clearTimeout(timeout);
     }
   }
 }
 
-export function getDecisionProvider(): DecisionProvider {
-  const apiKey = process.env.OPENROUTER_API_KEY?.trim();
-  if (!apiKey) {
-    return new DeterministicDecisionProvider();
+class ResilientDecisionProvider implements DecisionProvider {
+  readonly mode: "openrouter" | "groq" | "multi";
+
+  constructor(private readonly providers: OpenAICompatibleDecisionProvider[]) {
+    this.mode = providers.length > 1 ? "multi" : providers[0]?.mode ?? "multi";
   }
 
-  return new OpenRouterDecisionProvider(apiKey, process.env.OPENROUTER_MODEL?.trim() || "openrouter/auto-beta");
+  async createBrief(input: CreateDecisionInput) {
+    for (const provider of this.providers) {
+      try {
+        return await provider.createBrief(input);
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+          const reason = error instanceof Error ? error.name : "UnknownError";
+          console.warn(`[GenPHD] ${provider.mode} Decision Brief fallback: ${reason}`);
+        }
+      }
+    }
+
+    return createDecisionBrief(input);
+  }
+}
+
+function configuredProviders() {
+  const providerOrder = (process.env.GENPHD_DECISION_PROVIDERS ?? "openrouter,groq")
+    .split(",")
+    .map((provider) => provider.trim().toLowerCase())
+    .filter((provider): provider is LiveProviderMode => provider === "openrouter" || provider === "groq");
+  const configured = new Map<LiveProviderMode, OpenAICompatibleDecisionProvider>();
+  const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
+  const groqKey = process.env.GROQ_API_KEY?.trim();
+
+  if (openRouterKey) {
+    configured.set("openrouter", new OpenAICompatibleDecisionProvider({
+      apiKey: openRouterKey,
+      endpoint: OPENROUTER_ENDPOINT,
+      extraHeaders: {
+        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+        "X-OpenRouter-Title": "GenPHD",
+      },
+      mode: "openrouter",
+      model: process.env.OPENROUTER_MODEL?.trim() || "openrouter/auto-beta",
+      requestExtras: { plugins: [{ id: "auto-router", cost_quality_tradeoff: costQualityTradeoff() }] },
+    }));
+  }
+
+  if (groqKey) {
+    configured.set("groq", new OpenAICompatibleDecisionProvider({
+      apiKey: groqKey,
+      endpoint: GROQ_ENDPOINT,
+      mode: "groq",
+      model: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
+    }));
+  }
+
+  return [...new Set(providerOrder)].flatMap((provider) => {
+    const configuredProvider = configured.get(provider);
+    return configuredProvider ? [configuredProvider] : [];
+  });
+}
+
+export function getDecisionProvider(): DecisionProvider {
+  const providers = configuredProviders();
+  return providers.length ? new ResilientDecisionProvider(providers) : new DeterministicDecisionProvider();
 }
