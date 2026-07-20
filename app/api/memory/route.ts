@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
+import { apiErrorResponse } from "../../../lib/api/route-error";
+import { getWorkspaceContext } from "../../../lib/workspace/context";
+import { getMemoryItems } from "../../../lib/workspace/repository";
 
 export async function GET() {
-  return NextResponse.json({
-    items: [
-      { id: "goal", scope: "project", label: "Active project", value: "DocuQuery — source-grounded document Q&A" },
-      { id: "constraint", scope: "project", label: "Project constraint", value: "Two-day milestone with one retrieval flow" },
-      { id: "skill", scope: "learning", label: "RAG evaluation", value: "Emerging" },
-    ],
-  });
+  try {
+    return NextResponse.json({ items: await getMemoryItems(await getWorkspaceContext()) });
+  } catch (error) {
+    const response = apiErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
+  }
 }

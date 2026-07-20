@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import {
   ArrowRight,
   Bell,
@@ -33,7 +34,8 @@ import {
   X,
 } from "lucide-react";
 import { seedDecisionBrief } from "../lib/decision/brief";
-import type { DecisionBrief } from "../lib/decision/types";
+import { decisionBriefSchema, type DecisionBrief } from "../lib/decision/types";
+import { decisionStateSchema } from "../lib/workspace/contracts";
 
 type Page =
   | "dashboard"
@@ -188,6 +190,7 @@ export function GenPHDApp() {
   const [question, setQuestion] = useState("Should I use LangGraph for this two-day RAG project?");
   const [activeBrief, setActiveBrief] = useState<DecisionBrief>(seedDecisionBrief);
   const [decisionStatus, setDecisionStatus] = useState<"ready" | "working">("ready");
+  const [decisionError, setDecisionError] = useState<string | null>(null);
   const [missionComplete, setMissionComplete] = useState(false);
   const [isCompletingMission, setIsCompletingMission] = useState(false);
   const [missionError, setMissionError] = useState<string | null>(null);
@@ -201,6 +204,32 @@ export function GenPHDApp() {
     }, 0);
 
     return () => window.clearTimeout(tourTimer);
+  }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function restoreWorkspace() {
+      try {
+        const response = await fetch("/api/decisions", { cache: "no-store" });
+        const payload: unknown = await response.json();
+        const state = decisionStateSchema.safeParse(payload);
+
+        if (response.ok && state.success && isCurrent) {
+          setActiveBrief(state.data.brief);
+          const isCompleted = state.data.missionStatus === "completed";
+          setMissionComplete(isCompleted);
+          setSkillState(isCompleted ? "Practicing" : "Emerging");
+        }
+      } catch {
+        // The demo brief remains available when the workspace cannot be reached.
+      }
+    }
+
+    void restoreWorkspace();
+    return () => {
+      isCurrent = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -228,6 +257,7 @@ export function GenPHDApp() {
     if (!trimmedQuestion) return;
 
     setDecisionStatus("working");
+    setDecisionError(null);
     try {
       const response = await fetch("/api/decisions", {
         method: "POST",
@@ -240,16 +270,26 @@ export function GenPHDApp() {
       });
       const data: unknown = await response.json();
       if (!response.ok) {
-        throw new Error("Decision Brief could not be created.");
+        const message = typeof data === "object" && data !== null && "message" in data && typeof data.message === "string"
+          ? data.message
+          : "Decision Brief could not be created.";
+        throw new Error(message);
       }
 
-      setActiveBrief(data as DecisionBrief);
+      const brief = decisionBriefSchema.safeParse(data);
+      if (!brief.success) {
+        throw new Error("Decision Brief could not be validated. Please retry.");
+      }
+
+      setActiveBrief(brief.data);
       setMissionComplete(false);
       setMissionError(null);
+      setSkillState("Emerging");
       setDecisionStatus("ready");
       setIsComposerOpen(false);
       navigate("consensus");
-    } catch {
+    } catch (error) {
+      setDecisionError(error instanceof Error ? error.message : "Decision Brief could not be created. Please retry.");
       setDecisionStatus("ready");
     }
   }
@@ -400,6 +440,7 @@ export function GenPHDApp() {
               <Bell size={17} />
               <span className="notification-dot" aria-hidden="true" />
             </button>
+            <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>
             <button className="avatar topbar-avatar" type="button" aria-label="Open profile">AP</button>
           </div>
         </header>
@@ -429,6 +470,7 @@ export function GenPHDApp() {
                 <span>Python</span>
                 <span>One retrieval flow</span>
               </div>
+              {decisionError ? <p className="inline-error" role="alert">{decisionError}</p> : null}
               <div className="modal-actions">
                 <button className="button button-secondary" onClick={() => setIsComposerOpen(false)} type="button">Cancel</button>
                 <button className="button button-primary" type="submit">
@@ -691,6 +733,7 @@ function SettingsPage() {
       <section className="settings-section"><div><h2>Decision notifications</h2><p>Receive updates only when an active decision may have changed.</p></div><label className="switch"><input defaultChecked type="checkbox" /><span aria-hidden="true" /></label></section>
       <section className="settings-section"><div><h2>Mission reminders</h2><p>One quiet reminder when a current build mission is due today.</p></div><label className="switch"><input defaultChecked type="checkbox" /><span aria-hidden="true" /></label></section>
       <section className="settings-section"><div><h2>Memory controls</h2><p>Review, correct, export, or remove every persistent memory item.</p></div><button className="button button-secondary" type="button">Review memory</button></section>
+      <section className="settings-section"><div><h2>Cloud workspace</h2><p>Sign in to privately save decision briefs, completed missions, and learning evidence.</p></div><Link className="button button-secondary" href="/login">Connect account</Link></section>
       <section className="danger-section"><div><h2>Delete workspace data</h2><p>Removes projects, decisions, learning evidence, and stored memory.</p></div><button className="button button-danger" type="button">Delete workspace</button></section>
     </section>
   );

@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
+import { apiErrorResponse } from "../../../lib/api/route-error";
 import { getDecisionProvider } from "../../../lib/decision/provider";
 import { createDecisionInputSchema, decisionBriefSchema } from "../../../lib/decision/types";
+import { getWorkspaceContext } from "../../../lib/workspace/context";
+import { getLatestDecisionState, persistDecisionBrief } from "../../../lib/workspace/repository";
+
+export async function GET() {
+  try {
+    return NextResponse.json(await getLatestDecisionState(await getWorkspaceContext()));
+  } catch (error) {
+    const response = apiErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
+  }
+}
 
 export async function POST(request: Request) {
   const payload: unknown = await request.json().catch(() => null);
@@ -13,6 +25,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const brief = decisionBriefSchema.parse(await getDecisionProvider().createBrief(input.data));
-  return NextResponse.json(brief, { status: 201 });
+  try {
+    const context = await getWorkspaceContext();
+    const brief = decisionBriefSchema.parse(await getDecisionProvider().createBrief(input.data));
+    const persistedBrief = await persistDecisionBrief(context, brief);
+    return NextResponse.json(persistedBrief, { status: 201 });
+  } catch (error) {
+    const response = apiErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
+  }
 }

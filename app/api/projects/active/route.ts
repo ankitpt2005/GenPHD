@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
+import { apiErrorResponse } from "../../../../lib/api/route-error";
+import { getWorkspaceContext } from "../../../../lib/workspace/context";
+import { getActiveProject } from "../../../../lib/workspace/repository";
 
 export async function GET() {
-  return NextResponse.json({
-    id: "docuquery",
-    name: "DocuQuery",
-    outcome: "Source-grounded document Q&A",
-    stack: ["Python", "FastAPI", "pgvector"],
-    weeklyHours: 6,
-    constraints: ["two-day deadline", "one retrieval flow", "portfolio-quality explanation"],
-  });
+  try {
+    return NextResponse.json(await getActiveProject(await getWorkspaceContext()));
+  } catch (error) {
+    const response = apiErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
+  }
 }

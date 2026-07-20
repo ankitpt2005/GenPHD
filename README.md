@@ -33,12 +33,14 @@ Open `http://127.0.0.1:3000`.
 
 ## Supabase setup
 
-1. Create a Supabase project.
-2. Copy `.env.example` to `.env.local` and provide the Supabase keys.
-3. Run `supabase/migrations/0001_genphd_core.sql` in the Supabase SQL editor.
-4. Run `supabase/seed.sql` to load the shared competency and source catalog.
+1. Create a Supabase project and enable Email (magic-link) sign-in in **Authentication**.
+2. Add `http://localhost:3000/auth/callback` to the project's allowed redirect URLs. Add the production equivalent before deployment.
+3. Copy `.env.example` to `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+4. Run `supabase/migrations/0001_genphd_core.sql`, then `supabase/migrations/0002_decision_brief_persistence.sql`, in the Supabase SQL editor.
+5. Run `supabase/seed.sql` to load the shared competency and source catalog.
+6. Restart the app and use **Sign in** to create a private workspace. The app remains in demo mode until both public Supabase values are configured.
 
-The schema includes user-scoped Row Level Security for projects, decisions, missions, reviews, skill evidence, and memory.
+The schema includes user-scoped Row Level Security for projects, decisions, decision options, claims, missions, reviews, skill evidence, and memory. The server always uses the signed-in user's session for workspace requests; it does not use the service role key for normal product flows.
 
 ## AI provider boundary
 

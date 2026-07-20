@@ -353,6 +353,16 @@ kbd {
   margin-left: 5px;
 }
 
+.sign-in-link {
+  min-height: 30px;
+  margin-left: 6px;
+  padding: 4px 9px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  text-decoration: none;
+}
+
 .notification-dot {
   position: absolute;
   top: 8px;
@@ -1447,6 +1457,116 @@ kbd {
 
 .sidebar-backdrop {
   display: none;
+}
+
+.auth-screen {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-panel {
+  width: min(440px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 32px;
+}
+
+.auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.auth-back-link:hover {
+  color: var(--text-primary);
+}
+
+.auth-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  margin: 34px 0 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.auth-panel h1 {
+  max-width: 340px;
+  margin: 4px 0 7px;
+  font-size: 27px;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.28;
+}
+
+.auth-description {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.auth-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 26px;
+}
+
+.auth-form label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.auth-form input {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--background);
+  color: var(--text-primary);
+  padding: 10px 12px;
+}
+
+.auth-form .button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.auth-confirmation,
+.auth-setup-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 26px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--text-secondary);
+}
+
+.auth-confirmation strong,
+.auth-setup-note strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.auth-confirmation p,
+.auth-setup-note p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-setup-note code {
+  color: var(--text-primary);
 }
 
 @keyframes pulse {
