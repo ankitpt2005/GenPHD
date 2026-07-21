@@ -34,6 +34,8 @@ The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`
 | `POST /api/onboarding` | Validates first-run project context and creates the active project |
 | `GET /api/diagnostic` | Returns the adaptive placement questions (no answer keys) |
 | `POST /api/diagnostic` | Grades answers into a skill-gap vector and generates the roadmap DAG |
+| `GET /api/challenges` | Returns a framework-current coding challenge for a competency (no grading keys) |
+| `POST /api/challenges/grade` | Grades a code submission against the challenge criteria (AI grader, heuristic fallback) and records evidence on a pass |
 | `POST /api/missions/complete` | Records a mission outcome and returns skill evidence |
 | `GET /api/projects/active` | Returns the active demo project |
 | `GET /api/roadmap` | Returns current roadmap milestones and the latest skill-gap vector |
@@ -44,7 +46,7 @@ The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`
 1. Create a Supabase project and enable Email/password sign-in in **Authentication**.
 2. Add `http://localhost:3000/auth/callback` to the project's allowed redirect URLs. Add the production equivalent before deployment.
 3. Copy `.env.example` to `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-4. Run the migrations in order in the Supabase SQL editor: `0001_genphd_core.sql`, `0002_decision_brief_persistence.sql`, `0003_diagnostic_and_roadmap_dag.sql`, `0004_multi_model_consensus.sql`.
+4. Run the migrations in order in the Supabase SQL editor: `0001_genphd_core.sql`, `0002_decision_brief_persistence.sql`, `0003_diagnostic_and_roadmap_dag.sql`, `0004_multi_model_consensus.sql`, `0005_coding_challenges.sql`.
 5. Run `supabase/seed.sql` to load the shared competency and source catalog.
 6. Configure a Cloudflare Turnstile widget for your local and production hostnames. Add its public site key as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
 7. In Supabase **Authentication → Bot and Abuse Protection**, enable CAPTCHA, select **Cloudflare Turnstile**, and store the matching Turnstile secret there. Do not add that private key to the app.

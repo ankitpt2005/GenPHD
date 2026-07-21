@@ -14,7 +14,10 @@
       "Bash(export PGPASSWORD='Hackathon26')",
       "Bash(psql \"postgresql://postgres@db.ehzxobhlegbxvyympbae.supabase.co:5432/postgres?sslmode=require\" -tAc \"select current_user, version\\(\\);\")",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('LOGIN OK, got access_token' if d.get\\('access_token'\\) else 'LOGIN FAILED:', {k:d[k] for k in d if k in \\('error','error_description','msg','access_token','token_type'\\)} if not d.get\\('access_token'\\) else ''\\)\")",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('LOGIN OK — access_token issued, user:', d['user']['email']\\) if d.get\\('access_token'\\) else print\\('LOGIN FAILED:', {k:d.get\\(k\\) for k in \\('error','error_description','msg'\\)}\\)\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('LOGIN OK — access_token issued, user:', d['user']['email']\\) if d.get\\('access_token'\\) else print\\('LOGIN FAILED:', {k:d.get\\(k\\) for k in \\('error','error_description','msg'\\)}\\)\")",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(GENPHD_ALLOW_DEMO_MODE=true PORT=3008 npm run dev)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:3008/api/health)"
     ]
   }
 }
