@@ -42,6 +42,8 @@ import { SignOutButton } from "./auth/sign-out-button";
 import { z } from "zod";
 import { challengeGradeSchema, publicChallengeSchema, type ChallengeGrade, type PublicChallenge } from "../lib/challenges/types";
 import { consensusReportSchema, type ConsensusReport } from "../lib/consensus/types";
+import { diagnosticResultSchema } from "../lib/diagnostic/baseline";
+import { personalizeRoadmap } from "../lib/roadmap/personalize";
 import {
   activeProjectSchema,
   decisionStateSchema,
@@ -243,6 +245,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   const [skillState, setSkillState] = useState("Emerging");
   const [project, setProject] = useState<ActiveProject>(defaultProject);
   const [roadmap, setRoadmap] = useState<RoadmapMilestone[]>(defaultRoadmap);
+  const [isRoadmapPersonalized, setIsRoadmapPersonalized] = useState(false);
   const navigationKey = useRef<string | null>(null);
 
   const completedCount = useMemo(() => (missionComplete ? 1 : 0), [missionComplete]);
@@ -273,6 +276,11 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         const parsedBrief = cachedBrief ? decisionBriefSchema.safeParse(JSON.parse(cachedBrief)) : null;
         const parsedProject = cachedProject ? activeProjectSchema.safeParse(JSON.parse(cachedProject)) : null;
         const parsedRoadmap = cachedRoadmap ? roadmapPayloadSchema.safeParse(JSON.parse(cachedRoadmap)) : null;
+        const diagnostic = diagnosticResultSchema.safeParse(JSON.parse(window.sessionStorage.getItem("genphd-diagnostic") ?? "null"));
+        const setPersonalizedRoadmap = (milestones: RoadmapMilestone[]) => {
+          setRoadmap(diagnostic.success ? personalizeRoadmap(milestones, diagnostic.data) : milestones);
+          setIsRoadmapPersonalized(diagnostic.success);
+        };
 
         if (parsedBrief?.success && isCurrent) {
           setActiveBrief(parsedBrief.data);
@@ -286,7 +294,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         }
 
         if (parsedRoadmap?.success && isCurrent) {
-          setRoadmap(parsedRoadmap.data.milestones);
+          setPersonalizedRoadmap(parsedRoadmap.data.milestones);
         }
 
         if (!parsedBrief?.success) {
@@ -316,7 +324,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
           const payload: unknown = await response.json();
           const roadmapPayload = roadmapPayloadSchema.safeParse(payload);
           if (response.ok && roadmapPayload.success && isCurrent) {
-            setRoadmap(roadmapPayload.data.milestones);
+            setPersonalizedRoadmap(roadmapPayload.data.milestones);
           }
         }
       } catch {
@@ -489,7 +497,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   const appContent = () => {
     switch (page) {
       case "roadmap":
-        return <Roadmap missionComplete={missionComplete} milestones={roadmap} onOpenMission={() => navigate("challenges")} projectName={project.name} />;
+        return <Roadmap isPersonalized={isRoadmapPersonalized} missionComplete={missionComplete} milestones={roadmap} onOpenMission={() => navigate("challenges")} projectName={project.name} />;
       case "consensus":
         return (
           <Consensus
@@ -757,10 +765,11 @@ function Dashboard({ brief, completedCount, isCompletingMission, missionError, m
   );
 }
 
-function Roadmap({ missionComplete, milestones, onOpenMission, projectName }: { missionComplete: boolean; milestones: RoadmapMilestone[]; onOpenMission: () => void; projectName: string }) {
+function Roadmap({ isPersonalized, missionComplete, milestones, onOpenMission, projectName }: { isPersonalized: boolean; missionComplete: boolean; milestones: RoadmapMilestone[]; onOpenMission: () => void; projectName: string }) {
   return (
     <section className="reading-column">
       <PageTitle eyebrow={`${projectName} roadmap`} title="Build capability through the project" description="Your milestones are ordered by delivery impact, learning value, and the time you have available." />
+      {isPersonalized ? <p className="success-note" role="status">Prioritized using your diagnostic baseline. Your project milestones remain unchanged.</p> : null}
       {missionComplete ? <p className="success-note" role="status">Updated because your completed mission created new practical evidence.</p> : null}
       <div className="roadmap-list">
         {milestones.map((milestone, index) => (
