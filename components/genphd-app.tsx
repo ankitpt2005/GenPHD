@@ -41,6 +41,7 @@ import { getBrowserPublicRuntimeConfig } from "../lib/runtime/public-config.clie
 import { SignOutButton } from "./auth/sign-out-button";
 import { z } from "zod";
 import { challengeGradeSchema, publicChallengeSchema, type ChallengeGrade, type PublicChallenge } from "../lib/challenges/types";
+import { consensusReportSchema, type ConsensusReport } from "../lib/consensus/types";
 import {
   activeProjectSchema,
   decisionStateSchema,
@@ -233,6 +234,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [question, setQuestion] = useState("What should I validate before I build more?");
   const [activeBrief, setActiveBrief] = useState<DecisionBrief>(seedDecisionBrief);
+  const [consensus, setConsensus] = useState<ConsensusReport | null>(null);
   const [decisionStatus, setDecisionStatus] = useState<"ready" | "working">("ready");
   const [decisionError, setDecisionError] = useState<string | null>(null);
   const [missionComplete, setMissionComplete] = useState(false);
@@ -463,6 +465,22 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
     }
   }
 
+  async function runConsensus() {
+    setDecisionStatus("working");
+    setDecisionError(null);
+    try {
+      const response = await fetch("/api/consensus", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: activeBrief.question, projectId: project.id, constraints: project.constraints }) });
+      const parsed = consensusReportSchema.safeParse(await response.json().catch(() => null));
+      if (!response.ok || !parsed.success) throw new Error("Consensus could not be created. Please retry.");
+      setConsensus(parsed.data);
+      setActiveBrief(parsed.data.brief);
+    } catch (error) {
+      setDecisionError(error instanceof Error ? error.message : "Consensus could not be created. Please retry.");
+    } finally {
+      setDecisionStatus("ready");
+    }
+  }
+
   function closeTour() {
     window.localStorage.setItem("genphd-tour-complete", "true");
     setIsTourOpen(false);
@@ -476,7 +494,9 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         return (
           <Consensus
             brief={activeBrief}
+            consensus={consensus}
             decisionStatus={decisionStatus}
+            onRunConsensus={runConsensus}
             onStartMission={() => navigate("challenges")}
             onNewDecision={() => setIsComposerOpen(true)}
           />
@@ -760,7 +780,7 @@ function Roadmap({ missionComplete, milestones, onOpenMission, projectName }: { 
   );
 }
 
-function Consensus({ brief, decisionStatus, onStartMission, onNewDecision }: { brief: DecisionBrief; decisionStatus: "ready" | "working"; onStartMission: () => void; onNewDecision: () => void }) {
+function Consensus({ brief, consensus, decisionStatus, onRunConsensus, onStartMission, onNewDecision }: { brief: DecisionBrief; consensus: ConsensusReport | null; decisionStatus: "ready" | "working"; onRunConsensus: () => void; onStartMission: () => void; onNewDecision: () => void }) {
   const isWorking = decisionStatus === "working";
   return (
     <section className="reading-column decision-page">
@@ -775,8 +795,10 @@ function Consensus({ brief, decisionStatus, onStartMission, onNewDecision }: { b
             <h2>{brief.recommendation}</h2>
             <p>{brief.summary}</p>
             <p className="confidence-reason">{brief.confidenceReason}</p>
-            <div className="recommendation-actions"><button className="button button-primary" onClick={onStartMission} type="button">Start {brief.nextAction.title.toLowerCase()} <ArrowRight size={16} /></button><span className="quiet-label">Saved to this project</span></div>
+            <div className="recommendation-actions"><button className="button button-primary" onClick={onStartMission} type="button">Start {brief.nextAction.title.toLowerCase()} <ArrowRight size={16} /></button><button className="button button-ghost" onClick={onRunConsensus} type="button">Compare available models</button></div>
           </article>
+
+          {consensus ? <section className="decision-section"><div className="section-heading"><div><p className="eyebrow">Model consensus</p><h2>{consensus.mode === "multi" ? "Independent views, one trusted next step" : "Single-provider review"}</h2></div><span className="quiet-label">{consensus.models.length} model{consensus.models.length === 1 ? "" : "s"}</span></div><div className="evidence-list">{consensus.models.map((model) => <article className="evidence-item" key={model.provider}><div className="evidence-title"><Bot size={16} /><strong>{model.provider}</strong></div><p>{model.recommendation}</p><small>{model.summary}</small></article>)}</div>{consensus.agreements.map((item) => <p className="success-note" key={item}>{item}</p>)}{consensus.conflicts.map((item) => <p className="counterfactual" key={item}><ShieldCheck size={15} /> {item}</p>)}</section> : null}
 
           <section className="decision-section">
             <div className="section-heading"><div><p className="eyebrow">Why this fits</p><h2>Evidence matched to your constraints</h2></div><span className="quiet-label">{brief.evidence.length} sources</span></div>

@@ -265,3 +265,10 @@ export function getDecisionProvider(): DecisionProvider {
   const providers = configuredProviders();
   return providers.length ? new ResilientDecisionProvider(providers) : new DeterministicDecisionProvider();
 }
+
+// Used only by the explicit consensus action. Normal decision requests retain the
+// resilient single-result path above, so a user is never charged for a fan-out silently.
+export function getConsensusProviders(): DecisionProvider[] {
+  const providers = configuredProviders();
+  return providers.length ? providers.slice(0, 3) : [new DeterministicDecisionProvider()];
+}
