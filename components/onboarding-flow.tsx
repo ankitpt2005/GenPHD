@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Clock3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { onboardingResultSchema } from "../lib/workspace/onboarding";
+import { diagnosticQuestions, diagnosticResultSchema, type DiagnosticResult } from "../lib/diagnostic/baseline";
 
 type OnboardingDraft = {
   goal: string;
@@ -172,26 +173,36 @@ export function OnboardingFlow() {
 
 export function DiagnosticFlow() {
   const router = useRouter();
-  const [answer, setAnswer] = useState("");
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [result, setResult] = useState<DiagnosticResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   function finish() {
     window.localStorage.setItem("genphd-diagnostic-complete", "true");
     router.push("/dashboard");
   }
 
+  async function submit() {
+    if (Object.keys(answers).length !== diagnosticQuestions.length) return setError("Choose one answer for each foundation before continuing.");
+    setIsSaving(true); setError(null);
+    const response = await fetch("/api/diagnostic", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ answers }) }).catch(() => null);
+    const parsed = diagnosticResultSchema.safeParse(response ? await response.json().catch(() => null) : null);
+    if (!response?.ok || !parsed.success) { setError("Your baseline could not be saved. Please retry."); setIsSaving(false); return; }
+    setResult(parsed.data); window.sessionStorage.setItem("genphd-diagnostic", JSON.stringify(parsed.data)); setIsSaving(false);
+  }
+
   return (
     <main className="setup-shell">
       <section className="setup-panel diagnostic-panel" aria-labelledby="diagnostic-title">
         <p className="tour-step-count">Baseline diagnostic · optional</p>
-        <h1 id="diagnostic-title">What would make your first project result credible?</h1>
-        <p className="page-description">A short answer creates provisional evidence. You can skip it and refine the roadmap through completed work instead.</p>
-        <label className="setup-field" htmlFor="diagnostic-answer">Your current approach
-          <textarea id="diagnostic-answer" onChange={(event) => setAnswer(event.target.value)} placeholder="For example: define representative inputs, inspect retrieved context, and record one pass/fail condition." rows={6} value={answer} />
-        </label>
-        <div className="setup-actions">
-          <button className="button button-ghost" onClick={finish} type="button">Skip for now</button>
-          <button className="button button-primary" onClick={finish} type="button">Save provisional evidence <ArrowRight size={16} /></button>
-        </div>
+        <h1 id="diagnostic-title">Find the next skill your project needs.</h1>
+        <p className="page-description">Six focused questions create a transparent baseline. This is not an exam; it keeps your next roadmap step appropriately scoped.</p>
+        {result ? <><div className="diagnostic-result"><p className="eyebrow">Your baseline</p><h2>{result.summary}</h2>{result.scores.map((score) => <div className="skill-row" key={score.id}><span>{score.label}</span><strong>{score.state === "validated" ? "Validated" : "Emerging"}</strong></div>)}</div><div className="setup-actions"><button className="button button-primary" onClick={finish} type="button">Open my roadmap <ArrowRight size={16} /></button></div></> : <>
+          <div className="diagnostic-questions">{diagnosticQuestions.map((question) => <fieldset className="setup-field" key={question.id}><legend>{question.label}</legend><p>{question.prompt}</p>{question.options.map((option, index) => <label className="diagnostic-option" key={option}><input checked={answers[question.id] === index} name={question.id} onChange={() => setAnswers((current) => ({ ...current, [question.id]: index }))} type="radio" /> {option}</label>)}</fieldset>)}</div>
+          {error ? <p className="inline-error" role="alert">{error}</p> : null}
+          <div className="setup-actions"><button className="button button-ghost" onClick={finish} type="button">Skip for now</button><button className="button button-primary" disabled={isSaving} onClick={submit} type="button">{isSaving ? "Saving baseline…" : "Create my baseline"} <ArrowRight size={16} /></button></div>
+        </>}
       </section>
     </main>
   );
