@@ -25,6 +25,33 @@ const navigation = [
   ["Contact", "/contact"],
 ] as const;
 
+const footerNavigation = [
+  {
+    title: "Explore",
+    links: [
+      ["About GenPHD", "/about", "https://app.notion.com/p/3a4a7ebae27d8165ab01c0b323adcd50"],
+      ["How it works", "/services", "https://app.notion.com/p/3a4a7ebae27d81afb848fe790634ff34"],
+      ["Field notes", "/feedback", "https://app.notion.com/p/3a4a7ebae27d81a8a335d3f1e34abb84"],
+    ],
+  },
+  {
+    title: "Workspace",
+    links: [
+      ["Start a project", "/signup", "https://app.notion.com/p/3a4a7ebae27d816ca4d9c13354a7c3bd"],
+      ["Sign in", "/login", "https://app.notion.com/p/3a4a7ebae27d812e9eddc141989b021a"],
+      ["Contact", "/contact", "https://app.notion.com/p/3a4a7ebae27d81e28407d89dd25b6bac"],
+    ],
+  },
+  {
+    title: "Trust",
+    links: [
+      ["Privacy", "/privacy", "https://app.notion.com/p/3a4a7ebae27d81f3ae65ca39a709dd37"],
+      ["Terms", "/terms", "https://app.notion.com/p/3a4a7ebae27d81ebbc7fc63ae04c3dfa"],
+      ["Policies", "/legal", "https://app.notion.com/p/3a4a7ebae27d812f952be0b6481b3194"],
+    ],
+  },
+] as const;
+
 export function PublicHeader() {
   return (
     <header className="public-header">
@@ -49,24 +76,19 @@ export function PublicFooter() {
         <p>Decision intelligence for AI engineers who want evidence, momentum, and a workspace that remembers the important things.</p>
       </div>
       <div className="footer-links">
-        <div>
-          <p className="eyebrow">Explore</p>
-          <Link href="/about">About GenPHD</Link>
-          <Link href="/services">How it works</Link>
-          <Link href="/feedback">Field notes</Link>
-        </div>
-        <div>
-          <p className="eyebrow">Workspace</p>
-          <Link href="/signup">Start a project</Link>
-          <Link href="/login">Sign in</Link>
-          <Link href="/contact">Contact</Link>
-        </div>
-        <div>
-          <p className="eyebrow">Trust</p>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/legal">Policies</Link>
-        </div>
+        {footerNavigation.map((section) => (
+          <div key={section.title}>
+            <p className="eyebrow">{section.title}</p>
+            {section.links.map(([label, liveHref, notionHref]) => (
+              <div className="footer-link-item" key={label}>
+                <a aria-label={`${label} Notion document, opens in a new tab`} className="footer-notion-link" href={notionHref} rel="noreferrer" target="_blank">
+                  {label} <ArrowUpRight aria-hidden="true" size={12} />
+                </a>
+                <Link className="footer-site-link" href={liveHref}>Live page</Link>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
       <div className="footer-bottom">
         <span>© 2026 GenPHD</span>

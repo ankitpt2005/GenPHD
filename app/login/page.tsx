@@ -2,10 +2,11 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { SignInForm } from "../../components/auth/sign-in-form";
 import { safeWorkspacePath } from "../../lib/auth/routes";
-import { isSupabaseConfigured, isTurnstileConfigured } from "../../lib/supabase/config";
+import { getPublicRuntimeConfig, isSupabaseConfigured, isTurnstileConfigured } from "../../lib/supabase/config";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const params = await searchParams;
+  const turnstileSiteKey = getPublicRuntimeConfig().turnstileSiteKey;
   const isConfigured = isSupabaseConfigured() && isTurnstileConfigured();
   const redirectPath = safeWorkspacePath(params.next);
   const hasCallbackError = params.error === "signin_failed" || params.error === "signin_unavailable";
@@ -22,7 +23,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <h1 id="sign-in-title">Keep your decisions with you.</h1>
         <p className="auth-description">Sign in to open your private workspace. Sessions are verified on the server before project data is available.</p>
         {isConfigured ? (
-          <SignInForm redirectPath={redirectPath} />
+          <SignInForm redirectPath={redirectPath} turnstileSiteKey={turnstileSiteKey ?? ""} />
         ) : (
           <div className="auth-setup-note">
             <ShieldCheck aria-hidden="true" size={18} />

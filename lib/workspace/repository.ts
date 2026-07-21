@@ -70,6 +70,15 @@ const demoMemory: MemoryItem[] = [
   { id: "skill", scope: "learning", label: "RAG evaluation", value: "Emerging", provenance: "diagnostic" },
 ];
 
+const starterProject: ActiveProject = {
+  id: "starter-project",
+  name: "Your first project",
+  outcome: "Complete onboarding to add the project outcome you want to prove.",
+  stack: [],
+  weeklyHours: 1,
+  constraints: [],
+};
+
 const activeProjectRowSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -154,10 +163,10 @@ async function ensureActiveProject(supabase: SupabaseClient, userId: string) {
     .from("projects")
     .insert({
       user_id: userId,
-      name: demoProject.name,
-      outcome: demoProject.outcome,
-      stack: demoProject.stack,
-      constraints: demoProject.constraints,
+      name: starterProject.name,
+      outcome: starterProject.outcome,
+      stack: starterProject.stack,
+      constraints: starterProject.constraints,
       is_active: true,
     })
     .select("id, name, outcome, stack, constraints")
@@ -165,19 +174,6 @@ async function ensureActiveProject(supabase: SupabaseClient, userId: string) {
   requireSuccess(created.error);
 
   const project = toActiveProject(activeProjectRowSchema.parse(created.data));
-  const memory = await supabase.from("memory_items").insert(
-    demoMemory.map((item) => ({
-      user_id: userId,
-      project_id: project.id,
-      category: item.scope,
-      label: item.label,
-      value: item.value,
-      provenance: "user",
-      confidence: "high",
-    })),
-  );
-  requireSuccess(memory.error);
-
   return project;
 }
 

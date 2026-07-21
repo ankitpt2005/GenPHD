@@ -10,5 +10,11 @@ declare global {
 
 export function getBrowserPublicRuntimeConfig(): PublicRuntimeConfig {
   if (typeof window === "undefined") return {};
-  return window.__GENPHD_PUBLIC_CONFIG__ ?? {};
+
+  const root = document.body;
+  return {
+    supabasePublishableKey: root.dataset.genphdSupabasePublishableKey,
+    supabaseUrl: root.dataset.genphdSupabaseUrl,
+    turnstileSiteKey: root.dataset.genphdTurnstileSiteKey,
+  };
 }

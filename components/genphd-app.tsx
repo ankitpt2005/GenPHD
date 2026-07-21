@@ -86,38 +86,38 @@ const pagePaths: Record<WorkspacePage, string> = {
 };
 
 const defaultProject: ActiveProject = {
-  id: "docuquery",
-  name: "DocuQuery",
-  outcome: "Source-grounded document Q&A",
-  stack: ["Python", "FastAPI", "pgvector"],
-  weeklyHours: 6,
-  constraints: ["two-day deadline", "one retrieval flow", "portfolio-quality explanation"],
+  id: "workspace-loading",
+  name: "Your workspace",
+  outcome: "Loading your active project context…",
+  stack: [],
+  weeklyHours: 1,
+  constraints: [],
 };
 
 const defaultRoadmap: RoadmapMilestone[] = [
   {
-    id: "evaluate",
+    id: "define",
     state: "now",
-    title: "Evaluate the retrieval pipeline",
-    detail: "Create five realistic evaluation questions and inspect retrieved chunks.",
+    title: "Define the first project outcome",
+    detail: "Set one observable outcome before choosing a broader implementation.",
     estimateMinutes: 45,
-    competency: "RAG evaluation",
+    competency: "Project planning",
   },
   {
-    id: "trace",
+    id: "evidence",
     state: "next",
-    title: "Add source-grounded answer traces",
-    detail: "Make every answer explain the chunks it used and where it is uncertain.",
+    title: "Record the evidence that matters",
+    detail: "Capture the result, assumption, and limit behind the first meaningful build step.",
     estimateMinutes: 90,
-    competency: "Grounded generation",
+    competency: "AI evaluation",
   },
   {
-    id: "orchestrate",
+    id: "review",
     state: "later",
-    title: "Introduce workflow state only if needed",
-    detail: "Reconsider orchestration once the project gains branching tools or approval steps.",
+    title: "Review the next technical decision",
+    detail: "Use the evidence from the first result before increasing project complexity.",
     estimateMinutes: 120,
-    competency: "Agentic workflows",
+    competency: "AI system design",
   },
 ];
 
@@ -229,7 +229,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isCommandOpen, setIsCommandOpen] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
-  const [question, setQuestion] = useState("Should I use LangGraph for this two-day RAG project?");
+  const [question, setQuestion] = useState("What should I validate before I build more?");
   const [activeBrief, setActiveBrief] = useState<DecisionBrief>(seedDecisionBrief);
   const [decisionStatus, setDecisionStatus] = useState<"ready" | "working">("ready");
   const [decisionError, setDecisionError] = useState<string | null>(null);
@@ -241,7 +241,8 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   const [roadmap, setRoadmap] = useState<RoadmapMilestone[]>(defaultRoadmap);
   const navigationKey = useRef<string | null>(null);
 
-  const completedCount = useMemo(() => (missionComplete ? 2 : 1), [missionComplete]);
+  const completedCount = useMemo(() => (missionComplete ? 1 : 0), [missionComplete]);
+  const projectContextTags = useMemo(() => [...project.constraints, ...project.stack].slice(0, 3), [project]);
   const navigate = useCallback((nextPage: WorkspacePage) => {
     setPage(nextPage);
     setIsMobileMenuOpen(false);
@@ -479,13 +480,13 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
           />
         );
       case "projects":
-        return <Projects brief={activeBrief} onDecision={() => setIsComposerOpen(true)} project={project} roadmap={roadmap} />;
+        return <Projects brief={activeBrief} onDecision={() => setIsComposerOpen(true)} onUpdateProject={() => router.push("/onboarding")} project={project} roadmap={roadmap} />;
       case "challenges":
         return <Challenges brief={activeBrief} isCompletingMission={isCompletingMission} missionError={missionError} missionComplete={missionComplete} onComplete={completeMission} onViewRoadmap={() => navigate("roadmap")} />;
       case "timeline":
-        return <Timeline missionComplete={missionComplete} projectName={project.name} />;
+        return <Timeline brief={activeBrief} missionComplete={missionComplete} projectName={project.name} />;
       case "memory":
-        return <Memory project={project} skillState={skillState} />;
+        return <Memory brief={activeBrief} project={project} skillState={skillState} />;
       case "settings":
         return <SettingsPage />;
       default:
@@ -551,10 +552,10 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
             <span>Search workspace</span>
           </button>
           <button className="user-button" type="button" onClick={() => navigate("settings")}>
-            <span className="avatar">AP</span>
+            <span className="avatar">G</span>
             <span>
-              <strong>Ankit Pandit</strong>
-              <small>AI builder</small>
+              <strong>Your workspace</strong>
+              <small>Private project space</small>
             </span>
             <MoreHorizontal size={16} aria-hidden="true" />
           </button>
@@ -580,12 +581,12 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
             <button className="icon-button" onClick={() => setIsCommandOpen(true)} type="button" aria-label="Search workspace">
               <Search size={17} />
             </button>
-            <button className="icon-button notification-button" type="button" aria-label="View notifications">
+            <button className="icon-button notification-button" onClick={() => router.push("/notifications")} type="button" aria-label="View notifications">
               <Bell size={17} />
               <span className="notification-dot" aria-hidden="true" />
             </button>
             {hasSecureAuth ? <SignOutButton /> : <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>}
-            <button className="avatar topbar-avatar" onClick={() => router.push("/profile")} type="button" aria-label="Open profile">AP</button>
+            <button className="avatar topbar-avatar" onClick={() => router.push("/profile")} type="button" aria-label="Open profile">G</button>
           </div>
         </header>
 
@@ -610,9 +611,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
                 value={question}
               />
               <div className="constraint-list" aria-label="Active project constraints">
-                <span>Two-day deadline</span>
-                <span>Python</span>
-                <span>One retrieval flow</span>
+                {projectContextTags.length ? projectContextTags.map((item) => <span key={item}>{item}</span>) : <span>Loading project context…</span>}
               </div>
               {decisionError ? <p className="inline-error" role="alert">{decisionError}</p> : null}
               <div className="modal-actions">
@@ -665,9 +664,9 @@ function Dashboard({ brief, completedCount, isCompletingMission, missionError, m
   return (
     <>
       <PageTitle
-        eyebrow="Saturday, 19 July"
+        eyebrow="Today"
         title="Today’s best next action"
-        description={`Your fastest path to a stronger ${project.name} is to complete one focused action before widening scope.`}
+        description={`Your fastest path to a stronger ${project.name.toLowerCase()} is to complete one focused action before widening scope.`}
         action={<button className="button button-primary desktop-action" onClick={onNewDecision} type="button"><Plus size={16} /> Ask a decision</button>}
       />
       <div className="dashboard-layout">
@@ -720,15 +719,14 @@ function Dashboard({ brief, completedCount, isCompletingMission, missionError, m
         <aside className="context-rail">
           <section className="rail-section">
             <p className="eyebrow">Project signal</p>
-            <div className="signal-score"><span>{missionComplete ? "2" : "1"}</span><small>of {Math.max(roadmap.length, 1)} focused milestones complete</small></div>
-            <div className="progress-line"><span style={{ width: `${completedCount * 20}%` }} /></div>
+            <div className="signal-score"><span>{completedCount}</span><small>of {Math.max(roadmap.length, 1)} focused milestones complete</small></div>
+            <div className="progress-line"><span style={{ width: `${(completedCount / Math.max(roadmap.length, 1)) * 100}%` }} /></div>
             <button className="text-link" onClick={() => onNavigate("projects")} type="button">View project <ChevronRight size={14} /></button>
           </section>
           <section className="rail-section skill-section">
             <p className="eyebrow">Learning evidence</p>
-            <div className="skill-row"><span>Prompt design</span><strong>Validated</strong></div>
-            <div className="skill-row"><span>Retrieval</span><strong>Practicing</strong></div>
-            <div className="skill-row"><span>RAG evaluation</span><strong>{missionComplete ? "Practicing" : "Emerging"}</strong></div>
+            <div className="skill-row"><span>Active focus</span><strong>{brief.nextAction.competency}</strong></div>
+            <div className="skill-row"><span>Current evidence</span><strong>{missionComplete ? "Practicing" : "Not yet recorded"}</strong></div>
             <button className="text-link" onClick={() => onNavigate("memory")} type="button">Review evidence <ChevronRight size={14} /></button>
           </section>
         </aside>
@@ -741,7 +739,7 @@ function Roadmap({ missionComplete, milestones, onOpenMission, projectName }: { 
   return (
     <section className="reading-column">
       <PageTitle eyebrow={`${projectName} roadmap`} title="Build capability through the project" description="Your milestones are ordered by delivery impact, learning value, and the time you have available." />
-      {missionComplete ? <p className="success-note" role="status">Updated because your retrieval evaluation mission created new practical evidence.</p> : null}
+      {missionComplete ? <p className="success-note" role="status">Updated because your completed mission created new practical evidence.</p> : null}
       <div className="roadmap-list">
         {milestones.map((milestone, index) => (
           <article className={`roadmap-node ${milestone.state}`} key={milestone.title}>
@@ -775,7 +773,7 @@ function Consensus({ brief, decisionStatus, onStartMission, onNewDecision }: { b
             <h2>{brief.recommendation}</h2>
             <p>{brief.summary}</p>
             <p className="confidence-reason">{brief.confidenceReason}</p>
-            <div className="recommendation-actions"><button className="button button-primary" onClick={onStartMission} type="button">Start {brief.nextAction.title.toLowerCase()} <ArrowRight size={16} /></button><button className="button button-ghost" type="button">Save to project</button></div>
+            <div className="recommendation-actions"><button className="button button-primary" onClick={onStartMission} type="button">Start {brief.nextAction.title.toLowerCase()} <ArrowRight size={16} /></button><span className="quiet-label">Saved to this project</span></div>
           </article>
 
           <section className="decision-section">
@@ -801,17 +799,17 @@ function Consensus({ brief, decisionStatus, onStartMission, onNewDecision }: { b
   );
 }
 
-function Projects({ brief, onDecision, project, roadmap }: { brief: DecisionBrief; onDecision: () => void; project: ActiveProject; roadmap: RoadmapMilestone[] }) {
+function Projects({ brief, onDecision, onUpdateProject, project, roadmap }: { brief: DecisionBrief; onDecision: () => void; onUpdateProject: () => void; project: ActiveProject; roadmap: RoadmapMilestone[] }) {
   const currentMilestone = roadmap.find((milestone) => milestone.state === "now") ?? roadmap[0];
   return (
     <section className="reading-column">
       <PageTitle eyebrow="Active project" title={project.name} description={project.outcome} action={<button className="button button-primary desktop-action" onClick={onDecision} type="button"><Plus size={16} /> Ask a project decision</button>} />
       <article className="project-overview">
         <div className="project-overview-title"><div className="project-symbol"><FolderKanban size={20} /></div><div><p className="eyebrow">Portfolio project</p><h2>{project.outcome}</h2></div></div>
-        <div className="project-facts"><div><span>Stack</span><strong>{project.stack.join(" · ")}</strong></div><div><span>Time this week</span><strong>{project.weeklyHours} hours</strong></div><div><span>Current phase</span><strong>{currentMilestone?.competency ?? "Project planning"}</strong></div></div>
+        <div className="project-facts"><div><span>Stack</span><strong>{project.stack.length ? project.stack.join(" · ") : "Not recorded yet"}</strong></div><div><span>Time this week</span><strong>{project.constraints.length ? `${project.weeklyHours} hours` : "Not recorded yet"}</strong></div><div><span>Current phase</span><strong>{currentMilestone?.competency ?? "Project planning"}</strong></div></div>
       </article>
       <section className="decision-section">
-        <div className="section-heading"><div><p className="eyebrow">Project constraints</p><h2>What the system should optimize for</h2></div><button className="text-link" type="button">Edit context</button></div>
+        <div className="section-heading"><div><p className="eyebrow">Project constraints</p><h2>What the system should optimize for</h2></div><button className="text-link" onClick={onUpdateProject} type="button">Update project <ChevronRight size={15} /></button></div>
         <div className="constraint-grid">{project.constraints.map((constraint) => <span key={constraint}>{constraint}</span>)}</div>
       </section>
       <section className="decision-section">
@@ -831,18 +829,18 @@ function Challenges({ brief, isCompletingMission, missionError, missionComplete,
         <h2>{missionComplete ? "You created evidence, not just another feature." : "Target outcome"}</h2>
         <p>{missionComplete ? `GenPHD recorded evidence for ${brief.nextAction.competency.toLowerCase()} and will use it in future roadmap updates.` : brief.nextAction.objective}</p>
         <div className="criteria-block"><p className="eyebrow">Acceptance criteria</p><ul className="acceptance-list">{brief.nextAction.acceptanceCriteria.map((criterion) => <li className={missionComplete ? "is-done" : ""} key={criterion}><Check size={15} /> {criterion}</li>)}</ul></div>
-        {!missionComplete ? <div className="hint-box"><Lightbulb size={17} /><p><strong>Hint</strong> Begin with questions whose answer should be unambiguously present in one document. You are validating retrieval before generation.</p></div> : null}
-        <div className="mission-actions">{missionComplete ? <button className="button button-primary" onClick={onViewRoadmap} type="button">View updated roadmap <ArrowRight size={16} /></button> : <button className="button button-primary" disabled={isCompletingMission} onClick={onComplete} type="button">{isCompletingMission ? "Saving outcome…" : "Complete mission"} <Check size={16} /></button>}<button className="button button-ghost" type="button">Save draft</button></div>
+        {!missionComplete ? <div className="hint-box"><Lightbulb size={17} /><p><strong>Hint</strong> Begin with one representative input, one observable result, and one pass/fail condition before widening scope.</p></div> : null}
+        <div className="mission-actions">{missionComplete ? <button className="button button-primary" onClick={onViewRoadmap} type="button">View updated roadmap <ArrowRight size={16} /></button> : <button className="button button-primary" disabled={isCompletingMission} onClick={onComplete} type="button">{isCompletingMission ? "Saving outcome…" : "Complete mission"} <Check size={16} /></button>}</div>
         {missionError ? <p className="inline-error" role="alert">{missionError}</p> : null}
       </article>
     </section>
   );
 }
 
-function Timeline({ missionComplete, projectName }: { missionComplete: boolean; projectName: string }) {
+function Timeline({ brief, missionComplete, projectName }: { brief: DecisionBrief; missionComplete: boolean; projectName: string }) {
   const events = [
-    ...(missionComplete ? [{ title: "Build mission completed", detail: "RAG evaluation evidence updated to Practicing.", icon: Check }] : []),
-    { title: "Decision recorded", detail: "Use a simple workflow for the first DocuQuery release.", icon: BrainCircuit },
+    ...(missionComplete ? [{ title: "Build mission completed", detail: `${brief.nextAction.competency} evidence updated to Practicing.`, icon: Check }] : []),
+    { title: "Decision recorded", detail: brief.recommendation, icon: BrainCircuit },
     { title: "Roadmap created", detail: "Three milestones were prioritized from project context and time availability.", icon: Target },
     { title: "Project context added", detail: `${projectName} and its current constraints are now visible to your decisions.`, icon: FolderKanban },
   ];
@@ -859,31 +857,31 @@ function Timeline({ missionComplete, projectName }: { missionComplete: boolean; 
   );
 }
 
-function Memory({ project, skillState }: { project: ActiveProject; skillState: string }) {
+function Memory({ brief, project, skillState }: { brief: DecisionBrief; project: ActiveProject; skillState: string }) {
   return (
     <section className="reading-column">
-      <PageTitle eyebrow="Visible memory" title="What GenPHD remembers" description="Memory is scoped to your projects, editable by you, and used only to improve the next decision or build mission." action={<button className="button button-secondary desktop-action" type="button">Export memory</button>} />
-      <section className="memory-group"><p className="eyebrow">Project context</p><MemoryRow label="Active project" value={`${project.name} — ${project.outcome}`} source="You set this during onboarding" /><MemoryRow label="Project constraint" value={project.constraints.join(" · ")} source="You set this in project context" /></section>
-      <section className="memory-group"><p className="eyebrow">Learning evidence</p><MemoryRow label="RAG evaluation" value={skillState} source={skillState === "Practicing" ? "Build mission completed today" : "Baseline diagnostic"} /><MemoryRow label="Prompt design" value="Validated" source="Project explanation review" /></section>
-      <section className="memory-group"><p className="eyebrow">Decision history</p><MemoryRow label="Workflow choice" value="Simple application workflow for v1" source="Decision brief · today" /></section>
-      <div className="privacy-note"><ShieldCheck size={18} /><p><strong>You control this memory.</strong> Edit, remove, or export any persistent item. GenPHD does not retain secrets or raw source code by default.</p></div>
+      <PageTitle eyebrow="Visible memory" title="What GenPHD remembers" description="Memory is scoped to your projects and used only to improve the next decision or build mission." />
+      <section className="memory-group"><p className="eyebrow">Project context</p><MemoryRow label="Active project" value={`${project.name} — ${project.outcome}`} source="Your active project record" /><MemoryRow label="Project constraint" value={project.constraints.length ? project.constraints.join(" · ") : "No constraints recorded yet"} source="Your active project record" /></section>
+      <section className="memory-group"><p className="eyebrow">Learning evidence</p><MemoryRow label={brief.nextAction.competency} value={skillState} source={skillState === "Practicing" ? "Build mission completed today" : "Awaiting a completed mission"} /></section>
+      <section className="memory-group"><p className="eyebrow">Decision history</p><MemoryRow label="Latest decision" value={brief.recommendation} source="Decision brief · today" /></section>
+      <div className="privacy-note"><ShieldCheck size={18} /><p><strong>Your project memory stays scoped to this workspace.</strong> GenPHD does not retain secrets or raw source code by default.</p></div>
     </section>
   );
 }
 
 function MemoryRow({ label, value, source }: { label: string; value: string; source: string }) {
-  return <div className="memory-row"><div><strong>{label}</strong><span>{value}</span><small>{source}</small></div><button className="text-link" type="button">Edit</button></div>;
+  return <div className="memory-row"><div><strong>{label}</strong><span>{value}</span><small>{source}</small></div></div>;
 }
 
 function SettingsPage() {
   return (
     <section className="reading-column settings-page">
       <PageTitle eyebrow="Workspace settings" title="Keep control of the system" description="Preferences shape presentation and reminders; they do not silently rewrite your project decisions." />
-      <section className="settings-section"><div><h2>Decision notifications</h2><p>Receive updates only when an active decision may have changed.</p></div><label className="switch"><input defaultChecked type="checkbox" /><span aria-hidden="true" /></label></section>
-      <section className="settings-section"><div><h2>Mission reminders</h2><p>One quiet reminder when a current build mission is due today.</p></div><label className="switch"><input defaultChecked type="checkbox" /><span aria-hidden="true" /></label></section>
-      <section className="settings-section"><div><h2>Memory controls</h2><p>Review, correct, export, or remove every persistent memory item.</p></div><button className="button button-secondary" type="button">Review memory</button></section>
-      <section className="settings-section"><div><h2>Cloud workspace</h2><p>Sign in to privately save decision briefs, completed missions, and learning evidence.</p></div><Link className="button button-secondary" href="/login">Connect account</Link></section>
-      <section className="danger-section"><div><h2>Delete workspace data</h2><p>Removes projects, decisions, learning evidence, and stored memory.</p></div><button className="button button-danger" type="button">Delete workspace</button></section>
+      <section className="settings-section"><div><h2>Decision notifications</h2><p>Notifications are intentionally off until a connected delivery channel is available.</p></div></section>
+      <section className="settings-section"><div><h2>Mission reminders</h2><p>Mission reminders are not sent until they can be configured and saved reliably.</p></div></section>
+      <section className="settings-section"><div><h2>Visible memory</h2><p>Review the project context and evidence currently shaping your decisions.</p></div><Link className="button button-secondary" href="/memory">Review memory</Link></section>
+      <section className="settings-section"><div><h2>Project context</h2><p>Update the active project when its outcome, constraints, or available time changes.</p></div><Link className="button button-secondary" href="/onboarding">Update project</Link></section>
+      <section className="danger-section"><div><h2>Workspace data</h2><p>Export and deletion controls will appear here only once they can complete safely for every stored record.</p></div></section>
     </section>
   );
 }

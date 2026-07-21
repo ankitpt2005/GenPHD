@@ -3268,21 +3268,42 @@ kbd {
 .footer-links > div {
   display: grid;
   align-content: start;
-  gap: 8px;
+  gap: 14px;
 }
 
 .footer-links .eyebrow {
   margin-bottom: 8px;
 }
 
-.footer-links a {
+.footer-notion-link {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 4px;
   color: var(--text-secondary);
   font-size: 13px;
   text-decoration: none;
 }
 
-.footer-links a:hover,
-.footer-links a:focus-visible {
+.footer-notion-link:hover,
+.footer-notion-link:focus-visible {
+  color: var(--text-primary);
+}
+
+.footer-link-item {
+  display: grid;
+  gap: 2px;
+}
+
+.footer-site-link {
+  width: fit-content;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  text-decoration: none;
+}
+
+.footer-site-link:hover,
+.footer-site-link:focus-visible {
   color: var(--text-primary);
 }
 

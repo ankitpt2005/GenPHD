@@ -9,6 +9,7 @@ import { Turnstile } from "./turnstile";
 type SignInFormProps = {
   mode?: "login" | "signup";
   redirectPath?: string;
+  turnstileSiteKey: string;
 };
 
 function isStrongPassword(password: string) {
@@ -16,7 +17,7 @@ function isStrongPassword(password: string) {
   return password.length >= 12 && characterGroups.length >= 3;
 }
 
-export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: SignInFormProps) {
+export function SignInForm({ mode = "login", redirectPath = "/dashboard", turnstileSiteKey }: SignInFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,7 +53,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: Sign
     try {
       if (isSignup) {
         const callbackUrl = new URL("/auth/callback", window.location.origin);
-        callbackUrl.searchParams.set("next", "/dashboard");
+        callbackUrl.searchParams.set("next", redirectPath);
         const { data, error: authError } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
@@ -65,7 +66,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: Sign
         if (authError) throw authError;
 
         if (data.session) {
-          router.replace("/dashboard");
+          router.replace(redirectPath);
           router.refresh();
           return;
         }
@@ -139,7 +140,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard" }: Sign
       </div>
       {isSignup ? <p className={`password-requirement ${password && !passwordIsStrong ? "is-warning" : ""}`}><CheckCircle2 aria-hidden="true" size={14} /> Use 12+ characters with at least three character types.</p> : null}
 
-      <Turnstile onError={setCaptchaError} onTokenChange={setCaptchaToken} resetSignal={resetSignal} />
+      <Turnstile onError={setCaptchaError} onTokenChange={setCaptchaToken} resetSignal={resetSignal} siteKey={turnstileSiteKey} />
       {captchaError ? <p className="inline-error" role="alert">{captchaError}</p> : null}
       {error ? <p className="inline-error" role="alert">{error}</p> : null}
 

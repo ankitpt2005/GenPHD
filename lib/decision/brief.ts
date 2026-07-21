@@ -21,18 +21,18 @@ const sourceCatalog: SourceEvidence[] = [
   },
   {
     id: "project-context",
-    title: "DocuQuery project context",
-    url: "https://genphd.local/projects/docuquery",
-    detail: "The active project has a two-day milestone, one retrieval flow, and a portfolio-quality explanation goal.",
+    title: "Active project context",
+    url: "https://genphd.local/projects/active",
+    detail: "The recommendation is matched against the active project's saved constraints and delivery window.",
     tier: "Project context",
     isExternal: false,
     publishedAt: "2026-07-19",
   },
   {
     id: "practice-guide",
-    title: "RAG evaluation checklist",
-    url: "https://genphd.local/guides/rag-evaluation",
-    detail: "Capturing retrieved chunks beside answers makes retrieval failures visible before adding application complexity.",
+    title: "Evaluation practice guide",
+    url: "https://genphd.local/guides/evaluation",
+    detail: "A small, observable test before widening scope makes failures and tradeoffs visible.",
     tier: "Practice guide",
     isExternal: false,
     publishedAt: "2026-07-19",
@@ -160,7 +160,7 @@ export function createDecisionBrief(input: CreateDecisionInput): DecisionBrief {
 }
 
 export const seedDecisionBrief = createDecisionBrief({
-  question: "Should I use LangGraph for this two-day RAG project?",
-  projectId: "docuquery",
-  constraints: ["two-day deadline", "Python", "one retrieval flow"],
+  question: "What should I validate before I build more?",
+  projectId: "active-project",
+  constraints: ["current delivery window", "active project scope"],
 });
