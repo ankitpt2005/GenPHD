@@ -107,6 +107,9 @@ const defaultRoadmap: RoadmapMilestone[] = [
     detail: "Set one observable outcome before choosing a broader implementation.",
     estimateMinutes: 45,
     competency: "Project planning",
+    dependsOn: [],
+    sortOrder: 0,
+    kind: "milestone"
   },
   {
     id: "evidence",
@@ -115,6 +118,9 @@ const defaultRoadmap: RoadmapMilestone[] = [
     detail: "Capture the result, assumption, and limit behind the first meaningful build step.",
     estimateMinutes: 90,
     competency: "AI evaluation",
+    dependsOn: [],
+    sortOrder: 0,
+    kind: "milestone"
   },
   {
     id: "review",
@@ -123,6 +129,9 @@ const defaultRoadmap: RoadmapMilestone[] = [
     detail: "Use the evidence from the first result before increasing project complexity.",
     estimateMinutes: 120,
     competency: "AI system design",
+    dependsOn: [],
+    sortOrder: 0,
+    kind: "milestone"
   },
 ];
 

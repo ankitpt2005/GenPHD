@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(GENPHD_ALLOW_DEMO_MODE=true PORT=3111 npm run dev)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:3111/api/health)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); c=d['competencies']; print\\('competencies:', [x['competencyId'] for x in c]\\); print\\('mcq per comp:', len\\(c[0]['mcq']\\)\\); print\\('leak correctOptionId?', 'correctOptionId' in json.dumps\\(d\\)\\); print\\('leak rubric?', 'rubric' in json.dumps\\(d\\)\\)\")",
+      "Bash(curl -s http://127.0.0.1:3001/api/diagnostic)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); c=d['competencies']; print\\('competencies:', [x['competencyId'] for x in c]\\); print\\('mcq per comp:', len\\(c[0]['mcq']\\)\\); print\\('open prompt present:', 'prompt' in c[0]['open']\\); raw=json.dumps\\(d\\); print\\('leak correctOptionId?', 'correctOptionId' in raw\\); print\\('leak rubric?', 'rubric' in raw\\)\")",
+      "Bash(curl -s -X POST http://127.0.0.1:3001/api/diagnostic -H 'content-type: application/json' -d '{\"skipped\":true}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d\\)[:200]\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(export PGPASSWORD='Hackathon26')",
+      "Bash(psql \"postgresql://postgres@db.ehzxobhlegbxvyympbae.supabase.co:5432/postgres?sslmode=require\" -tAc \"select current_user, version\\(\\);\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('LOGIN OK, got access_token' if d.get\\('access_token'\\) else 'LOGIN FAILED:', {k:d[k] for k in d if k in \\('error','error_description','msg','access_token','token_type'\\)} if not d.get\\('access_token'\\) else ''\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('LOGIN OK — access_token issued, user:', d['user']['email']\\) if d.get\\('access_token'\\) else print\\('LOGIN FAILED:', {k:d.get\\(k\\) for k in \\('error','error_description','msg'\\)}\\)\")"
+    ]
+  }
+}
