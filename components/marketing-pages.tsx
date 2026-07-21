@@ -18,6 +18,7 @@ type MarketingPageProps = {
 };
 
 const navigation = [
+  ["Home", "/"],
   ["About", "/about"],
   ["How it works", "/services"],
   ["Field notes", "/feedback"],
