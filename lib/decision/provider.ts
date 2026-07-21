@@ -212,7 +212,7 @@ class ResilientDecisionProvider implements DecisionProvider {
 }
 
 function configuredProviders() {
-  const providerOrder = (process.env.GENPHD_DECISION_PROVIDERS ?? "openrouter,groq,openai")
+  const providerOrder = (process.env.GENPHD_DECISION_PROVIDERS ?? "openai,openrouter,groq")
     .split(",")
     .map((provider) => provider.trim().toLowerCase())
     .filter((provider): provider is LiveProviderMode => (

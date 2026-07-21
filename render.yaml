@@ -12,7 +12,7 @@ services:
       - key: GENPHD_ALLOW_DEMO_MODE
         value: "false"
       - key: GENPHD_DECISION_PROVIDERS
-        value: openrouter,groq,openai
+        value: openai,openrouter,groq
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
