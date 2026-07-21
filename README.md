@@ -16,9 +16,9 @@ Open `http://127.0.0.1:3000`.
 ## Current working flow
 
 1. Start at the landing page, then sign up or sign in.
-2. Enter the route-based dashboard directly; onboarding and diagnostic remain available as optional guided setup.
-3. Ask a technical decision from the dashboard or Decisions view.
-4. The API validates the request and returns a typed, source-aware Decision Brief.
+2. Complete onboarding to establish the active project context.
+3. Take the adaptive diagnostic (or skip it). It produces a skill-gap vector across the six GenAI competencies and generates a personalized roadmap DAG that targets your weakest areas in prerequisite order and ends at a shippable capstone artifact.
+4. Ask a technical decision from the dashboard or Decisions view; the API returns a typed, source-aware Decision Brief.
 5. Start the attached Build Mission, complete it, and review the updated roadmap and learning evidence.
 
 In demo mode, onboarding context is retained for the active browser session so the dashboard, project view, roadmap, and visible memory reflect the project just created. A configured Supabase workspace persists the same context privately for the signed-in user.
@@ -30,10 +30,13 @@ The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`
 | Route | Purpose |
 |---|---|
 | `POST /api/decisions` | Validates a question and returns a Decision Brief |
-| `POST /api/onboarding` | Validates first-run project context and creates an initial three-step roadmap |
+| `POST /api/consensus` | Fans the question out to several models and returns a reconciled consensus report (agreements, conflicts, one next step) plus the grounded brief |
+| `POST /api/onboarding` | Validates first-run project context and creates the active project |
+| `GET /api/diagnostic` | Returns the adaptive placement questions (no answer keys) |
+| `POST /api/diagnostic` | Grades answers into a skill-gap vector and generates the roadmap DAG |
 | `POST /api/missions/complete` | Records a mission outcome and returns skill evidence |
 | `GET /api/projects/active` | Returns the active demo project |
-| `GET /api/roadmap` | Returns current roadmap milestones |
+| `GET /api/roadmap` | Returns current roadmap milestones and the latest skill-gap vector |
 | `GET /api/memory` | Returns visible memory items |
 
 ## Supabase setup
@@ -41,7 +44,7 @@ The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`
 1. Create a Supabase project and enable Email/password sign-in in **Authentication**.
 2. Add `http://localhost:3000/auth/callback` to the project's allowed redirect URLs. Add the production equivalent before deployment.
 3. Copy `.env.example` to `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-4. Run `supabase/migrations/0001_genphd_core.sql`, then `supabase/migrations/0002_decision_brief_persistence.sql`, in the Supabase SQL editor.
+4. Run the migrations in order in the Supabase SQL editor: `0001_genphd_core.sql`, `0002_decision_brief_persistence.sql`, `0003_diagnostic_and_roadmap_dag.sql`, `0004_multi_model_consensus.sql`.
 5. Run `supabase/seed.sql` to load the shared competency and source catalog.
 6. Configure a Cloudflare Turnstile widget for your local and production hostnames. Add its public site key as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
 7. In Supabase **Authentication → Bot and Abuse Protection**, enable CAPTCHA, select **Cloudflare Turnstile**, and store the matching Turnstile secret there. Do not add that private key to the app.

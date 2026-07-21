@@ -22,6 +22,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   ListChecks,
+  Lock,
   Menu,
   MoreHorizontal,
   PanelLeftClose,
@@ -32,6 +33,7 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
+  Trophy,
   X,
 } from "lucide-react";
 import { seedDecisionBrief } from "../lib/decision/brief";
@@ -43,9 +45,13 @@ import {
   activeProjectSchema,
   decisionStateSchema,
   roadmapMilestoneSchema,
+  skillGapVectorSchema,
   type ActiveProject,
+  type CompetencyScore,
   type RoadmapMilestone,
 } from "../lib/workspace/contracts";
+import { consensusReportSchema, type ConsensusReport } from "../lib/consensus/types";
+import { COMPETENCIES } from "../lib/competencies";
 
 export type WorkspacePage =
   | "dashboard"
@@ -96,36 +102,62 @@ const defaultProject: ActiveProject = {
 
 const defaultRoadmap: RoadmapMilestone[] = [
   {
-    id: "evaluate",
+    id: "retrieval",
     state: "now",
-    title: "Evaluate the retrieval pipeline",
-    detail: "Create five realistic evaluation questions and inspect retrieved chunks.",
-    estimateMinutes: 45,
-    competency: "RAG evaluation",
-  },
-  {
-    id: "trace",
-    state: "next",
-    title: "Add source-grounded answer traces",
-    detail: "Make every answer explain the chunks it used and where it is uncertain.",
+    title: "Make retrieval reliable",
+    detail: "Tune chunking, add hybrid or reranked retrieval, and inspect retrieved chunks beside answers.",
     estimateMinutes: 90,
-    competency: "Grounded generation",
+    competency: "Retrieval strategies",
+    dependsOn: [],
+    sortOrder: 0,
+    kind: "milestone",
   },
   {
-    id: "orchestrate",
-    state: "later",
-    title: "Introduce workflow state only if needed",
-    detail: "Reconsider orchestration once the project gains branching tools or approval steps.",
+    id: "evals",
+    state: "next",
+    title: "Build a small eval set",
+    detail: "Write 5-8 representative questions with expected grounding and a pass/fail check.",
+    estimateMinutes: 60,
+    competency: "Evaluations",
+    dependsOn: ["retrieval"],
+    sortOrder: 1,
+    kind: "milestone",
+  },
+  {
+    id: "capstone",
+    state: "locked",
+    title: "Ship your project",
+    detail: "Integrate the milestones into one working, evaluated pipeline you can demo and explain.",
     estimateMinutes: 120,
-    competency: "Agentic workflows",
+    competency: "Evaluations",
+    dependsOn: ["retrieval", "evals"],
+    sortOrder: 2,
+    kind: "capstone",
   },
 ];
 
-const roadmapPayloadSchema = z.object({ milestones: z.array(roadmapMilestoneSchema) });
+const roadmapPayloadSchema = z.object({
+  milestones: z.array(roadmapMilestoneSchema),
+  gapVector: skillGapVectorSchema.optional(),
+});
+
+// A balanced fallback gap vector for the learning-evidence rail before a diagnostic loads.
+const defaultGapVector: CompetencyScore[] = COMPETENCIES.map((competency) => ({
+  competencyId: competency.id,
+  label: competency.label,
+  score: 50,
+  state: "practicing" as const,
+}));
 
 function formatEstimate(minutes: number) {
   return minutes >= 60 ? `${minutes / 60} hr` : `${minutes} min`;
 }
+
+const skillStateLabels: Record<string, string> = {
+  emerging: "Emerging",
+  practicing: "Practicing",
+  validated: "Validated",
+};
 
 function NavButton({ item, current, onClick }: { item: NavItem; current: WorkspacePage; onClick: (page: WorkspacePage) => void }) {
   const Icon = item.icon;
@@ -231,6 +263,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [question, setQuestion] = useState("Should I use LangGraph for this two-day RAG project?");
   const [activeBrief, setActiveBrief] = useState<DecisionBrief>(seedDecisionBrief);
+  const [consensus, setConsensus] = useState<ConsensusReport | null>(null);
   const [decisionStatus, setDecisionStatus] = useState<"ready" | "working">("ready");
   const [decisionError, setDecisionError] = useState<string | null>(null);
   const [missionComplete, setMissionComplete] = useState(false);
@@ -239,6 +272,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   const [skillState, setSkillState] = useState("Emerging");
   const [project, setProject] = useState<ActiveProject>(defaultProject);
   const [roadmap, setRoadmap] = useState<RoadmapMilestone[]>(defaultRoadmap);
+  const [gapVector, setGapVector] = useState<CompetencyScore[]>(defaultGapVector);
   const navigationKey = useRef<string | null>(null);
 
   const completedCount = useMemo(() => (missionComplete ? 2 : 1), [missionComplete]);
@@ -265,15 +299,23 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         const cachedMissionStatus = window.sessionStorage.getItem("genphd-mission-status");
         const cachedProject = window.sessionStorage.getItem("genphd-active-project");
         const cachedRoadmap = window.sessionStorage.getItem("genphd-roadmap");
+        const cachedGapVector = window.sessionStorage.getItem("genphd-gap-vector");
+        const cachedConsensus = window.sessionStorage.getItem("genphd-consensus");
         const parsedBrief = cachedBrief ? decisionBriefSchema.safeParse(JSON.parse(cachedBrief)) : null;
         const parsedProject = cachedProject ? activeProjectSchema.safeParse(JSON.parse(cachedProject)) : null;
         const parsedRoadmap = cachedRoadmap ? roadmapPayloadSchema.safeParse(JSON.parse(cachedRoadmap)) : null;
+        const parsedGapVector = cachedGapVector ? skillGapVectorSchema.safeParse(JSON.parse(cachedGapVector)) : null;
+        const parsedConsensus = cachedConsensus ? consensusReportSchema.safeParse(JSON.parse(cachedConsensus)) : null;
 
         if (parsedBrief?.success && isCurrent) {
           setActiveBrief(parsedBrief.data);
           const isCompleted = cachedMissionStatus === "completed";
           setMissionComplete(isCompleted);
           setSkillState(isCompleted ? "Practicing" : "Emerging");
+        }
+
+        if (parsedConsensus?.success && isCurrent) {
+          setConsensus(parsedConsensus.data);
         }
 
         if (parsedProject?.success && isCurrent) {
@@ -284,6 +326,10 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
           setRoadmap(parsedRoadmap.data.milestones);
         }
 
+        if (parsedGapVector?.success && isCurrent) {
+          setGapVector(parsedGapVector.data);
+        }
+
         if (!parsedBrief?.success) {
           const response = await fetch("/api/decisions", { cache: "no-store" });
           const payload: unknown = await response.json();
@@ -291,6 +337,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
 
           if (response.ok && state.success && isCurrent) {
             setActiveBrief(state.data.brief);
+            if (state.data.consensus) setConsensus(state.data.consensus);
             const isCompleted = state.data.missionStatus === "completed";
             setMissionComplete(isCompleted);
             setSkillState(isCompleted ? "Practicing" : "Emerging");
@@ -306,12 +353,15 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
           }
         }
 
-        if (!parsedRoadmap?.success) {
+        if (!parsedRoadmap?.success || !parsedGapVector?.success) {
           const response = await fetch("/api/roadmap", { cache: "no-store" });
           const payload: unknown = await response.json();
           const roadmapPayload = roadmapPayloadSchema.safeParse(payload);
           if (response.ok && roadmapPayload.success && isCurrent) {
-            setRoadmap(roadmapPayload.data.milestones);
+            if (!parsedRoadmap?.success) setRoadmap(roadmapPayload.data.milestones);
+            if (!parsedGapVector?.success && roadmapPayload.data.gapVector) {
+              setGapVector(roadmapPayload.data.gapVector);
+            }
           }
         }
       } catch {
@@ -394,7 +444,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
     setDecisionStatus("working");
     setDecisionError(null);
     try {
-      const response = await fetch("/api/decisions", {
+      const response = await fetch("/api/consensus", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -407,17 +457,19 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
       if (!response.ok) {
         const message = typeof data === "object" && data !== null && "message" in data && typeof data.message === "string"
           ? data.message
-          : "Decision Brief could not be created.";
+          : "Consensus could not be created.";
         throw new Error(message);
       }
 
-      const brief = decisionBriefSchema.safeParse(data);
-      if (!brief.success) {
-        throw new Error("Decision Brief could not be validated. Please retry.");
+      const parsed = z.object({ brief: decisionBriefSchema, consensus: consensusReportSchema }).safeParse(data);
+      if (!parsed.success) {
+        throw new Error("Consensus could not be validated. Please retry.");
       }
 
-      setActiveBrief(brief.data);
-      window.sessionStorage.setItem("genphd-active-brief", JSON.stringify(brief.data));
+      setActiveBrief(parsed.data.brief);
+      setConsensus(parsed.data.consensus);
+      window.sessionStorage.setItem("genphd-active-brief", JSON.stringify(parsed.data.brief));
+      window.sessionStorage.setItem("genphd-consensus", JSON.stringify(parsed.data.consensus));
       window.sessionStorage.removeItem("genphd-mission-status");
       setMissionComplete(false);
       setMissionError(null);
@@ -473,6 +525,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         return (
           <Consensus
             brief={activeBrief}
+            consensus={consensus}
             decisionStatus={decisionStatus}
             onStartMission={() => navigate("challenges")}
             onNewDecision={() => setIsComposerOpen(true)}
@@ -493,6 +546,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
           <Dashboard
             brief={activeBrief}
             completedCount={completedCount}
+            gapVector={gapVector}
             isCompletingMission={isCompletingMission}
             missionError={missionError}
             missionComplete={missionComplete}
@@ -649,9 +703,10 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   );
 }
 
-function Dashboard({ brief, completedCount, isCompletingMission, missionError, missionComplete, onComplete, onNewDecision, onNavigate, project, roadmap }: {
+function Dashboard({ brief, completedCount, gapVector, isCompletingMission, missionError, missionComplete, onComplete, onNewDecision, onNavigate, project, roadmap }: {
   brief: DecisionBrief;
   completedCount: number;
+  gapVector: CompetencyScore[];
   isCompletingMission: boolean;
   missionError: string | null;
   missionComplete: boolean;
@@ -726,9 +781,9 @@ function Dashboard({ brief, completedCount, isCompletingMission, missionError, m
           </section>
           <section className="rail-section skill-section">
             <p className="eyebrow">Learning evidence</p>
-            <div className="skill-row"><span>Prompt design</span><strong>Validated</strong></div>
-            <div className="skill-row"><span>Retrieval</span><strong>Practicing</strong></div>
-            <div className="skill-row"><span>RAG evaluation</span><strong>{missionComplete ? "Practicing" : "Emerging"}</strong></div>
+            {gapVector.map((entry) => (
+              <div className="skill-row" key={entry.competencyId}><span>{entry.label}</span><strong>{skillStateLabels[entry.state] ?? entry.state}</strong></div>
+            ))}
             <button className="text-link" onClick={() => onNavigate("memory")} type="button">Review evidence <ChevronRight size={14} /></button>
           </section>
         </aside>
@@ -740,46 +795,109 @@ function Dashboard({ brief, completedCount, isCompletingMission, missionError, m
 function Roadmap({ missionComplete, milestones, onOpenMission, projectName }: { missionComplete: boolean; milestones: RoadmapMilestone[]; onOpenMission: () => void; projectName: string }) {
   return (
     <section className="reading-column">
-      <PageTitle eyebrow={`${projectName} roadmap`} title="Build capability through the project" description="Your milestones are ordered by delivery impact, learning value, and the time you have available." />
-      {missionComplete ? <p className="success-note" role="status">Updated because your retrieval evaluation mission created new practical evidence.</p> : null}
+      <PageTitle eyebrow={`${projectName} roadmap`} title="Build capability through the project" description="Your milestones target your weakest skills first, in the order they build on each other, and end at a shippable artifact." />
+      {missionComplete ? <p className="success-note" role="status">Updated because your completed mission created new practical evidence.</p> : null}
       <div className="roadmap-list">
-        {milestones.map((milestone, index) => (
-          <article className={`roadmap-node ${milestone.state}`} key={milestone.title}>
-            <span className="node-line" aria-hidden="true" />
-            <span className="node-index">0{index + 1}</span>
-            <div className="node-content">
-              <div className="node-header"><div><p className="node-capability">{milestone.competency}</p><h2>{milestone.title}</h2></div><span className="time-estimate"><Clock3 size={14} /> {formatEstimate(milestone.estimateMinutes)}</span></div>
-              <p>{milestone.detail}</p>
-              {milestone.state === "now" ? <button className="button button-primary" onClick={onOpenMission} type="button">Start mission <ArrowRight size={16} /></button> : null}
-              {milestone.state === "later" ? <p className="counterfactual"><ShieldCheck size={15} /> Re-evaluate only when the workflow becomes branched or persistent.</p> : null}
-            </div>
-          </article>
-        ))}
+        {milestones.map((milestone, index) => {
+          const isCapstone = milestone.kind === "capstone";
+          const isLocked = milestone.state === "locked";
+          return (
+            <article className={`roadmap-node ${milestone.state} ${isCapstone ? "is-capstone" : ""}`} key={milestone.id}>
+              <span className="node-line" aria-hidden="true" />
+              <span className="node-index">
+                {isCapstone ? <Trophy size={12} aria-hidden="true" /> : isLocked ? <Lock size={11} aria-hidden="true" /> : `0${index + 1}`}
+              </span>
+              <div className="node-content">
+                <div className="node-header">
+                  <div><p className="node-capability">{isCapstone ? "Capstone artifact" : milestone.competency}</p><h2>{milestone.title}</h2></div>
+                  <span className="time-estimate"><Clock3 size={14} /> {formatEstimate(milestone.estimateMinutes)}</span>
+                </div>
+                <p>{milestone.detail}</p>
+                {milestone.state === "now" ? <button className="button button-primary" onClick={onOpenMission} type="button">Start mission <ArrowRight size={16} /></button> : null}
+                {isLocked ? <p className="counterfactual"><Lock size={14} /> Unlocks when its earlier milestone{milestone.dependsOn.length > 1 ? "s are" : " is"} complete.</p> : null}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
 }
 
-function Consensus({ brief, decisionStatus, onStartMission, onNewDecision }: { brief: DecisionBrief; decisionStatus: "ready" | "working"; onStartMission: () => void; onNewDecision: () => void }) {
+const consensusModeLabels: Record<ConsensusReport["mode"], string> = {
+  "multi-model": "3 models compared",
+  "single-model": "1 model available",
+  deterministic: "Grounded fallback",
+};
+
+function Consensus({ brief, consensus, decisionStatus, onStartMission, onNewDecision }: { brief: DecisionBrief; consensus: ConsensusReport | null; decisionStatus: "ready" | "working"; onStartMission: () => void; onNewDecision: () => void }) {
   const isWorking = decisionStatus === "working";
+  const question = consensus?.question ?? brief.question;
+  const recommendation = consensus?.recommendation ?? brief.recommendation;
+  const confidence = consensus?.confidence ?? brief.confidence;
+  const nextStep = consensus?.nextStep ?? brief.nextAction.title;
+
   return (
     <section className="reading-column decision-page">
-      <PageTitle eyebrow="Decision brief" title="What should you trust?" description="A recommendation is only useful when its evidence, tradeoffs, and limits are visible." action={<button className="button button-secondary desktop-action" onClick={onNewDecision} type="button"><Plus size={16} /> New decision</button>} />
-      <div className="decision-question"><span className="question-icon"><Bot size={17} /></span><p>{brief.question}</p></div>
+      <PageTitle
+        eyebrow="Model consensus"
+        title="Where the models agree — and where they don't"
+        description="Ask once. We send it to several models, show where they line up and where they conflict, and give you one trusted next step."
+        action={<button className="button button-secondary desktop-action" onClick={onNewDecision} type="button"><Plus size={16} /> New decision</button>}
+      />
+      <div className="decision-question"><span className="question-icon"><Bot size={17} /></span><p>{question}</p></div>
+
       {isWorking ? (
-        <div className="workflow-status" role="status"><span className="working-pulse" aria-hidden="true" /> Reviewing current evidence and project constraints…</div>
+        <div className="workflow-status" role="status"><span className="working-pulse" aria-hidden="true" /> Asking the models and reconciling their answers…</div>
       ) : (
         <>
           <article className="recommendation-card">
-            <div className="recommendation-top"><span className="eyebrow">Recommended action</span><Confidence value={`${brief.confidence.replace("-", " ")} confidence`} /></div>
-            <h2>{brief.recommendation}</h2>
-            <p>{brief.summary}</p>
-            <p className="confidence-reason">{brief.confidenceReason}</p>
-            <div className="recommendation-actions"><button className="button button-primary" onClick={onStartMission} type="button">Start {brief.nextAction.title.toLowerCase()} <ArrowRight size={16} /></button><button className="button button-ghost" type="button">Save to project</button></div>
+            <div className="recommendation-top"><span className="eyebrow">One trusted next step</span><Confidence value={`${confidence.replace("-", " ")} confidence`} /></div>
+            <h2>{recommendation}</h2>
+            <p>{nextStep}</p>
+            <div className="recommendation-actions"><button className="button button-primary" onClick={onStartMission} type="button">Start build mission <ArrowRight size={16} /></button><button className="button button-ghost" type="button">Save to project</button></div>
           </article>
 
+          {consensus && consensus.models.length > 0 ? (
+            <section className="decision-section">
+              <div className="section-heading"><div><p className="eyebrow">The raw answers</p><h2>What each model said</h2></div><span className="quiet-label">{consensusModeLabels[consensus.mode]}</span></div>
+              <div className="consensus-grid">
+                {consensus.models.map((model) => (
+                  <article className="model-card" key={model.model}>
+                    <div className="model-card-head"><span className="model-badge">{model.label}</span></div>
+                    <strong>{model.headline}</strong>
+                    <p>{model.detail}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {consensus && consensus.agreements.length > 0 ? (
+            <section className="decision-section">
+              <div className="section-heading"><div><p className="eyebrow">Where they agree</p><h2>Shared ground you can trust</h2></div></div>
+              <ul className="agreement-list">
+                {consensus.agreements.map((point) => <li key={point}><Check size={15} /> {point}</li>)}
+              </ul>
+            </section>
+          ) : null}
+
+          {consensus && consensus.conflicts.length > 0 ? (
+            <section className="decision-section">
+              <div className="section-heading"><div><p className="eyebrow">Where they conflict</p><h2>Decide these with your context</h2></div></div>
+              <div className="conflict-list">
+                {consensus.conflicts.map((conflict) => (
+                  <article className="conflict-item" key={conflict.topic}>
+                    <div className="conflict-title"><ShieldCheck size={16} /><strong>{conflict.topic}</strong>{conflict.models.length ? <span className="conflict-models">{conflict.models.join(" vs ")}</span> : null}</div>
+                    <p>{conflict.detail}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           <section className="decision-section">
-            <div className="section-heading"><div><p className="eyebrow">Why this fits</p><h2>Evidence matched to your constraints</h2></div><span className="quiet-label">{brief.evidence.length} sources</span></div>
+            <div className="section-heading"><div><p className="eyebrow">Grounded in your sources</p><h2>Evidence matched to your constraints</h2></div><span className="quiet-label">{brief.evidence.length} sources</span></div>
             <div className="evidence-list">
               {brief.evidence.map((item) => (
                 <article className="evidence-item" key={item.title}>
@@ -789,11 +907,6 @@ function Consensus({ brief, decisionStatus, onStartMission, onNewDecision }: { b
                 </article>
               ))}
             </div>
-          </section>
-
-          <section className="decision-section split-section">
-            <div><p className="eyebrow">Real tradeoff</p><h2>{brief.conflicts[0]?.title ?? "Known tradeoff"}</h2><p className="body-copy">{brief.tradeoff}</p></div>
-            <div className="counterfactual-box"><ShieldCheck size={18} /><div><strong>Choose the alternative if…</strong><p>{brief.counterfactual}</p></div></div>
           </section>
         </>
       )}

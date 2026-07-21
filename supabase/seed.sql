@@ -1,11 +1,11 @@
 insert into public.competencies (id, label, description)
 values
-  ('prompt-design', 'Prompt design', 'Writes constrained, testable prompts for a target task.'),
-  ('retrieval', 'Retrieval', 'Builds and inspects a reliable retrieval path.'),
-  ('rag-evaluation', 'RAG evaluation', 'Defines and interprets evidence-grounded RAG evaluations.'),
-  ('ai-evaluation', 'AI evaluation', 'Designs a compact, representative evaluation loop for an AI feature.'),
-  ('agentic-workflows', 'Agentic workflows', 'Chooses workflow orchestration only when the problem needs it.'),
-  ('ai-system-design', 'AI system design', 'Uses constraints and measurable outcomes to make architecture choices.')
+  ('prompting', 'Prompting', 'Writes constrained, testable prompts for a target task.'),
+  ('embeddings', 'Embeddings', 'Understands how text becomes vectors and how to choose an embedding model.'),
+  ('vector-dbs', 'Vector databases', 'Stores, indexes, and queries embeddings with the right index and metadata.'),
+  ('retrieval', 'Retrieval strategies', 'Designs and inspects a reliable retrieval path (chunking, reranking, hybrid).'),
+  ('agent-frameworks', 'Agent frameworks', 'Wires up agents and tool use with a current framework only when the problem needs it.'),
+  ('evals', 'Evaluations', 'Defines a compact, representative evaluation loop for an AI feature.')
 on conflict (id) do update
 set label = excluded.label,
     description = excluded.description;

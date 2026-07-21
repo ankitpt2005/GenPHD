@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Clock3 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock3, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { onboardingResultSchema } from "../lib/workspace/onboarding";
+import { diagnosticResultSchema, onboardingResultSchema } from "../lib/workspace/onboarding";
 
 type OnboardingDraft = {
   goal: string;
@@ -108,11 +108,13 @@ export function OnboardingFlow() {
       return;
     }
 
+    // The roadmap is generated after the diagnostic, so clear any stale workspace caches.
     window.localStorage.removeItem("genphd-onboarding-draft");
     window.sessionStorage.removeItem("genphd-active-brief");
     window.sessionStorage.removeItem("genphd-mission-status");
+    window.sessionStorage.removeItem("genphd-roadmap");
+    window.sessionStorage.removeItem("genphd-gap-vector");
     window.sessionStorage.setItem("genphd-active-project", JSON.stringify(savedWorkspace.data.project));
-    window.sessionStorage.setItem("genphd-roadmap", JSON.stringify({ milestones: savedWorkspace.data.milestones }));
     router.push("/diagnostic");
   }
 
@@ -162,7 +164,7 @@ export function OnboardingFlow() {
           {error ? <p className="inline-error" role="alert">{error}</p> : null}
           <div className="setup-actions">
             {step > 0 ? <button className="button button-ghost" onClick={() => setStep((current) => current - 1)} type="button"><ArrowLeft size={16} /> Back</button> : <span />}
-            {step < questions.length - 1 ? <button className="button button-primary" type="submit">Continue <ArrowRight size={16} /></button> : <button className="button button-primary" disabled={isSaving} type="submit">{isSaving ? "Creating roadmap…" : "Create roadmap"} <Check size={16} /></button>}
+            {step < questions.length - 1 ? <button className="button button-primary" type="submit">Continue <ArrowRight size={16} /></button> : <button className="button button-primary" disabled={isSaving} type="submit">{isSaving ? "Saving project…" : "Start the diagnostic"} <ArrowRight size={16} /></button>}
           </div>
         </form>
       </section>
@@ -170,27 +172,177 @@ export function OnboardingFlow() {
   );
 }
 
+// Client-safe question shapes (answer keys never leave the server).
+type PublicMcq = { id: string; competencyId: string; difficulty: string; prompt: string; options: { id: string; text: string }[] };
+type PublicOpen = { id: string; competencyId: string; prompt: string };
+type PublicCompetency = { competencyId: string; label: string; mcq: PublicMcq[]; open: PublicOpen };
+type GapEntry = { competencyId: string; label: string; score: number; state: "emerging" | "practicing" | "validated" };
+
+const stateLabels: Record<GapEntry["state"], string> = {
+  emerging: "Emerging",
+  practicing: "Practicing",
+  validated: "Validated",
+};
+
 export function DiagnosticFlow() {
   const router = useRouter();
-  const [answer, setAnswer] = useState("");
+  const [phase, setPhase] = useState<"loading" | "quiz" | "submitting" | "result" | "error">("loading");
+  const [competencies, setCompetencies] = useState<PublicCompetency[]>([]);
+  const [step, setStep] = useState(0);
+  const [mcq, setMcq] = useState<Record<string, string>>({});
+  const [open, setOpen] = useState<Record<string, string>>({});
+  const [gapVector, setGapVector] = useState<GapEntry[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  function finish() {
+  useEffect(() => {
+    let active = true;
+    fetch("/api/diagnostic", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("load"))))
+      .then((data: { competencies?: PublicCompetency[] }) => {
+        if (!active) return;
+        if (Array.isArray(data.competencies) && data.competencies.length > 0) {
+          setCompetencies(data.competencies);
+          setPhase("quiz");
+        } else {
+          setPhase("error");
+        }
+      })
+      .catch(() => active && setPhase("error"));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function submit(skipped: boolean) {
+    setPhase("submitting");
+    setError(null);
+    const response = await fetch("/api/diagnostic", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(skipped ? { skipped: true } : { mcq, open }),
+    }).catch(() => null);
+
+    const payload: unknown = response ? await response.json().catch(() => null) : null;
+    if (!response?.ok) {
+      setError("Your diagnostic could not be saved. Please retry.");
+      setPhase("quiz");
+      return;
+    }
+
+    const result = diagnosticResultSchema.safeParse(payload);
+    if (!result.success) {
+      setError("Your results could not be read. Please retry.");
+      setPhase("quiz");
+      return;
+    }
+
     window.localStorage.setItem("genphd-diagnostic-complete", "true");
-    router.push("/dashboard");
+    window.sessionStorage.setItem("genphd-roadmap", JSON.stringify({ milestones: result.data.milestones }));
+    window.sessionStorage.setItem("genphd-gap-vector", JSON.stringify(result.data.gapVector));
+    setGapVector(result.data.gapVector as GapEntry[]);
+    setPhase("result");
   }
+
+  if (phase === "loading") {
+    return (
+      <main className="setup-shell">
+        <section className="setup-panel" aria-busy="true">
+          <p className="tour-step-count">Baseline diagnostic</p>
+          <h1>Preparing your placement test…</h1>
+          <p className="page-description"><Loader2 className="spin" aria-hidden="true" size={16} /> Loading questions.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (phase === "error") {
+    return (
+      <main className="setup-shell">
+        <section className="setup-panel">
+          <p className="tour-step-count">Baseline diagnostic</p>
+          <h1>The diagnostic is unavailable right now</h1>
+          <p className="page-description">You can go straight to your workspace and build evidence through completed missions instead.</p>
+          <div className="setup-actions"><span /><button className="button button-primary" onClick={() => router.push("/dashboard")} type="button">Go to dashboard <ArrowRight size={16} /></button></div>
+        </section>
+      </main>
+    );
+  }
+
+  if (phase === "result") {
+    return (
+      <main className="setup-shell">
+        <section className="setup-panel diagnostic-panel" aria-labelledby="diagnostic-result-title">
+          <p className="tour-step-count">Your skill-gap vector</p>
+          <h1 id="diagnostic-result-title">Here is where you stand</h1>
+          <p className="page-description">Your roadmap now targets the weakest areas first, in the order they build on each other.</p>
+          <div className="gap-vector">
+            {gapVector.map((entry) => (
+              <div className="gap-row" key={entry.competencyId}>
+                <div className="gap-row-head"><strong>{entry.label}</strong><span className={`gap-state ${entry.state}`}>{stateLabels[entry.state]}</span></div>
+                <div className="gap-bar" role="img" aria-label={`${entry.label}: ${entry.score} of 100`}><span className={`gap-fill ${entry.state}`} style={{ width: `${entry.score}%` }} /></div>
+              </div>
+            ))}
+          </div>
+          <div className="setup-actions"><span /><button className="button button-primary" onClick={() => router.push("/roadmap")} type="button">See my roadmap <ArrowRight size={16} /></button></div>
+        </section>
+      </main>
+    );
+  }
+
+  const current = competencies[step];
+  const isSubmitting = phase === "submitting";
+  const isFinalStep = step === competencies.length - 1;
 
   return (
     <main className="setup-shell">
       <section className="setup-panel diagnostic-panel" aria-labelledby="diagnostic-title">
-        <p className="tour-step-count">Baseline diagnostic · optional</p>
-        <h1 id="diagnostic-title">What would make your first project result credible?</h1>
-        <p className="page-description">A short answer creates provisional evidence. You can skip it and refine the roadmap through completed work instead.</p>
-        <label className="setup-field" htmlFor="diagnostic-answer">Your current approach
-          <textarea id="diagnostic-answer" onChange={(event) => setAnswer(event.target.value)} placeholder="For example: define representative inputs, inspect retrieved context, and record one pass/fail condition." rows={6} value={answer} />
-        </label>
+        <p className="tour-step-count">Baseline diagnostic · {step + 1} of {competencies.length}</p>
+        <h1 id="diagnostic-title">{current.label}</h1>
+        <p className="page-description">Answer what you can. Skipping a question just marks that area as a bigger gap.</p>
+
+        <div className="diagnostic-questions">
+          {current.mcq.map((question) => (
+            <fieldset className="diagnostic-question" key={question.id}>
+              <legend>{question.prompt}</legend>
+              {question.options.map((option) => (
+                <label className={`diagnostic-option ${mcq[question.id] === option.id ? "is-selected" : ""}`} key={option.id}>
+                  <input
+                    checked={mcq[question.id] === option.id}
+                    name={question.id}
+                    onChange={() => setMcq((current) => ({ ...current, [question.id]: option.id }))}
+                    type="radio"
+                    value={option.id}
+                  />
+                  <span>{option.text}</span>
+                </label>
+              ))}
+            </fieldset>
+          ))}
+
+          <label className="setup-field" htmlFor={current.open.id}>{current.open.prompt} <small>(optional)</small>
+            <textarea
+              id={current.open.id}
+              onChange={(event) => setOpen((current) => ({ ...current, [event.target.id]: event.target.value }))}
+              placeholder="A sentence or two is enough."
+              rows={3}
+              value={open[current.open.id] ?? ""}
+            />
+          </label>
+        </div>
+
+        {error ? <p className="inline-error" role="alert">{error}</p> : null}
+
         <div className="setup-actions">
-          <button className="button button-ghost" onClick={finish} type="button">Skip for now</button>
-          <button className="button button-primary" onClick={finish} type="button">Save provisional evidence <ArrowRight size={16} /></button>
+          {step > 0 ? (
+            <button className="button button-ghost" disabled={isSubmitting} onClick={() => setStep((current) => current - 1)} type="button"><ArrowLeft size={16} /> Back</button>
+          ) : (
+            <button className="button button-ghost" disabled={isSubmitting} onClick={() => submit(true)} type="button">Skip diagnostic</button>
+          )}
+          {isFinalStep ? (
+            <button className="button button-primary" disabled={isSubmitting} onClick={() => submit(false)} type="button">{isSubmitting ? "Scoring…" : "Finish & build roadmap"} <Check size={16} /></button>
+          ) : (
+            <button className="button button-primary" disabled={isSubmitting} onClick={() => setStep((current) => Math.min(current + 1, competencies.length - 1))} type="button">Next area <ArrowRight size={16} /></button>
+          )}
         </div>
       </section>
     </main>

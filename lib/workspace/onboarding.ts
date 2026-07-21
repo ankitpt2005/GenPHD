@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { activeProjectSchema, roadmapMilestoneSchema } from "./contracts";
+import { activeProjectSchema, roadmapMilestoneSchema, skillGapVectorSchema } from "./contracts";
 
 export const onboardingInputSchema = z.object({
   goal: z.string().trim().min(3, "Tell us what you want to achieve.").max(160),
@@ -10,44 +10,21 @@ export const onboardingInputSchema = z.object({
   blocker: z.string().trim().min(8, "Name the current blocker.").max(800),
 });
 
+// Onboarding only establishes the project context now; the roadmap is generated after
+// the diagnostic produces a skill-gap vector (see persistDiagnostic).
 export const onboardingResultSchema = z.object({
   project: activeProjectSchema,
-  milestones: z.array(roadmapMilestoneSchema).length(3),
+});
+
+// Result of a completed (or skipped) diagnostic: the gap vector plus the roadmap it drove.
+export const diagnosticResultSchema = z.object({
+  gapVector: skillGapVectorSchema,
+  milestones: z.array(roadmapMilestoneSchema),
 });
 
 export type OnboardingInput = z.infer<typeof onboardingInputSchema>;
 export type OnboardingResult = z.infer<typeof onboardingResultSchema>;
-
-export function createInitialRoadmap(input: OnboardingInput) {
-  const focus = input.projectName.trim();
-
-  return [
-    {
-      id: "evaluate",
-      state: "now" as const,
-      title: `Define the first evaluation for ${focus}`,
-      detail: `Turn the current blocker into five observable checks before expanding the implementation.`,
-      estimateMinutes: 45,
-      competency: "AI evaluation",
-    },
-    {
-      id: "trace",
-      state: "next" as const,
-      title: "Make the project outcome traceable",
-      detail: "Capture the evidence, assumptions, and limits behind each meaningful project result.",
-      estimateMinutes: 90,
-      competency: "Retrieval",
-    },
-    {
-      id: "review",
-      state: "later" as const,
-      title: "Review the workflow only after evidence exists",
-      detail: "Revisit framework complexity when the current evaluation exposes a repeated delivery constraint.",
-      estimateMinutes: 60,
-      competency: "AI system design",
-    },
-  ];
-}
+export type DiagnosticResult = z.infer<typeof diagnosticResultSchema>;
 
 export function createDemoOnboardingResult(input: OnboardingInput): OnboardingResult {
   return onboardingResultSchema.parse({
@@ -59,6 +36,5 @@ export function createDemoOnboardingResult(input: OnboardingInput): OnboardingRe
       weeklyHours: input.weeklyHours,
       constraints: [input.blocker, `${input.weeklyHours} hours available this week`],
     },
-    milestones: createInitialRoadmap(input),
   });
 }

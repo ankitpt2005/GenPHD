@@ -4470,3 +4470,143 @@ kbd {
 .button-primary { background: #fff; color: #000; font-weight: 600; text-decoration: none; }
 .button-primary:hover { background: #ccc; }
 
+/* Diagnostic placement test */
+.diagnostic-panel { width: min(100%, 620px); }
+
+.spin { animation: genphd-spin 1s linear infinite; vertical-align: -2px; }
+@keyframes genphd-spin { to { transform: rotate(360deg); } }
+
+.diagnostic-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin: 22px 0 4px;
+}
+
+.diagnostic-question {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.diagnostic-question legend {
+  padding: 0 0 12px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.diagnostic-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.diagnostic-option:hover { border-color: var(--border-strong); }
+
+.diagnostic-option.is-selected {
+  border-color: var(--text-primary);
+  background: var(--surface-muted, rgb(120 120 120 / 8%));
+  color: var(--text-primary);
+}
+
+.diagnostic-option input { margin-top: 3px; }
+
+/* Skill-gap vector summary */
+.gap-vector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0 8px;
+}
+
+.gap-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+  font-size: 14px;
+}
+
+.gap-state {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.gap-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.gap-fill { display: block; height: 100%; border-radius: 999px; background: var(--text-primary); }
+.gap-fill.emerging { background: #c2603f; }
+.gap-fill.practicing { background: #c9a227; }
+.gap-fill.validated { background: var(--success, #6f8f76); }
+.gap-state.emerging { color: #c2603f; }
+.gap-state.validated { color: var(--success, #6f8f76); }
+
+/* Multi-model consensus */
+.consensus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.model-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+}
+
+.model-card-head { margin-bottom: 10px; }
+
+.model-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.model-card strong { display: block; margin-bottom: 6px; font-size: 15px; }
+.model-card p { color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+
+.agreement-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.agreement-list li { display: flex; align-items: flex-start; gap: 9px; color: var(--text-secondary); font-size: 14px; }
+.agreement-list svg { margin-top: 2px; color: var(--success, #6f8f76); flex-shrink: 0; }
+
+.conflict-list { display: flex; flex-direction: column; gap: 12px; }
+.conflict-item { padding: 14px; border: 1px solid var(--border); border-left: 2px solid #c9a227; border-radius: 10px; }
+.conflict-title { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.conflict-title strong { font-size: 14px; }
+.conflict-models { margin-left: auto; font-size: 12px; color: var(--text-tertiary); }
+.conflict-item p { color: var(--text-secondary); font-size: 13px; }
+
+/* Roadmap DAG states */
+.roadmap-node.locked { opacity: 0.62; }
+.roadmap-node.locked .node-index {
+  border-style: dashed;
+  color: var(--text-tertiary);
+}
+.roadmap-node.is-capstone .node-index {
+  width: 22px;
+  height: 22px;
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  background: var(--background);
+}
+.roadmap-node.is-capstone h2 { margin-top: 1px; }
+

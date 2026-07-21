@@ -3,11 +3,18 @@ import { z } from "zod";
 import { seedDecisionBrief } from "../decision/brief";
 import type { DecisionBrief } from "../decision/types";
 import { completeMission, missionCompletionSchema, type CompleteMissionInput } from "../missions/complete";
+import { competencyLabel, normalizeCompetencyId, type CompetencyId } from "../competencies";
+import { consensusReportSchema, type ConsensusReport } from "../consensus/types";
+import { QUESTION_BANK_VERSION } from "../diagnostic/questions";
+import { neutralGapVector } from "../diagnostic/scoring";
+import { computeMilestoneStates, generateRoadmap, type GeneratedMilestone } from "../roadmap/generate";
+import { generateRoadmapWithProvider } from "../roadmap/provider";
 import type { WorkspaceContext } from "./context";
 import {
   createDemoOnboardingResult,
-  createInitialRoadmap,
+  diagnosticResultSchema,
   onboardingResultSchema,
+  type DiagnosticResult,
   type OnboardingInput,
 } from "./onboarding";
 import {
@@ -16,10 +23,12 @@ import {
   memoryItemSchema,
   missionStatusSchema,
   roadmapMilestoneSchema,
+  skillGapVectorSchema,
   type ActiveProject,
   type DecisionState,
   type MemoryItem,
   type RoadmapMilestone,
+  type SkillGapVector,
 } from "./contracts";
 
 export class WorkspacePersistenceError extends Error {
@@ -37,32 +46,31 @@ const demoProject: ActiveProject = {
   constraints: ["two-day deadline", "one retrieval flow", "portfolio-quality explanation"],
 };
 
-const demoRoadmap: RoadmapMilestone[] = [
-  {
-    id: "evaluate",
-    state: "now",
-    title: "Evaluate the retrieval pipeline",
-    detail: "Create five realistic evaluation questions and inspect retrieved chunks.",
-    estimateMinutes: 45,
-    competency: "RAG evaluation",
-  },
-  {
-    id: "trace",
-    state: "next",
-    title: "Add source-grounded answer traces",
-    detail: "Make every answer explain the chunks it used and where it is uncertain.",
-    estimateMinutes: 90,
-    competency: "Grounded generation",
-  },
-  {
-    id: "orchestrate",
-    state: "later",
-    title: "Introduce workflow state only if needed",
-    detail: "Reconsider orchestration once the project gains branching tools or approval steps.",
-    estimateMinutes: 120,
-    competency: "Agentic workflows",
-  },
-];
+// Convert generated (slug-keyed) milestones into the display contract, deriving each
+// milestone's state from which of its dependencies are complete.
+function generatedToContract(milestones: GeneratedMilestone[], completed: Set<string> = new Set()): RoadmapMilestone[] {
+  const states = computeMilestoneStates(
+    milestones.map((milestone) => ({ key: milestone.slug, dependsOn: milestone.dependsOn })),
+    completed,
+  );
+  return milestones
+    .filter((milestone) => states[milestone.slug])
+    .map((milestone, index) =>
+      roadmapMilestoneSchema.parse({
+        id: milestone.slug,
+        state: states[milestone.slug],
+        title: milestone.title,
+        detail: milestone.detail,
+        estimateMinutes: milestone.estimateMinutes,
+        competency: milestone.competency,
+        dependsOn: milestone.dependsOn,
+        sortOrder: index,
+        kind: milestone.kind,
+      }),
+    );
+}
+
+const demoRoadmap: RoadmapMilestone[] = generatedToContract(generateRoadmap(demoProject, neutralGapVector()));
 
 const demoMemory: MemoryItem[] = [
   { id: "goal", scope: "project", label: "Active project", value: "DocuQuery — source-grounded document Q&A", provenance: "onboarding" },
@@ -80,6 +88,7 @@ const activeProjectRowSchema = z.object({
 
 const decisionRowSchema = z.object({
   brief: z.unknown().nullable(),
+  consensus: z.unknown().nullable().default(null),
 });
 
 const missionRowSchema = z.object({
@@ -97,6 +106,9 @@ const roadmapRowSchema = z.object({
   estimate_minutes: z.number().int(),
   competency_id: z.string().nullable(),
   status: missionStatusSchema,
+  depends_on: z.array(z.string().uuid()).nullable().default([]),
+  sort_order: z.number().int().nullable(),
+  kind: z.enum(["milestone", "capstone"]).nullable().default("milestone"),
 });
 
 const memoryRowSchema = z.object({
@@ -113,24 +125,12 @@ function requireSuccess(error: unknown) {
   }
 }
 
-function competencyIdFor(label: string) {
-  const normalized = label.toLowerCase();
-  if (normalized === "rag evaluation") return "rag-evaluation";
-  if (normalized === "ai evaluation") return "ai-evaluation";
-  if (normalized === "agentic workflows") return "agentic-workflows";
-  if (normalized === "ai system design") return "ai-system-design";
-  return "retrieval";
+function competencyIdFor(label: string): CompetencyId {
+  return normalizeCompetencyId(label);
 }
 
 function competencyLabelFor(id: string | null, fallback: string) {
-  const labels: Record<string, string> = {
-    "rag-evaluation": "RAG evaluation",
-    "ai-evaluation": "AI evaluation",
-    "agentic-workflows": "Agentic workflows",
-    "ai-system-design": "AI system design",
-    retrieval: "Retrieval",
-  };
-  return id ? (labels[id] ?? fallback) : fallback;
+  return id ? competencyLabel(normalizeCompetencyId(id)) : fallback;
 }
 
 function toActiveProject(row: z.infer<typeof activeProjectRowSchema>): ActiveProject {
@@ -218,19 +218,6 @@ export async function completeOnboarding(context: WorkspaceContext, input: Onboa
   requireSuccess(projectResult.error);
 
   const project = toActiveProject(activeProjectRowSchema.parse(projectResult.data));
-  const milestones = createInitialRoadmap(input);
-  const missionResult = await context.supabase.from("build_missions").insert(
-    milestones.map((milestone) => ({
-      user_id: context.userId,
-      project_id: project.id,
-      competency_id: competencyIdFor(milestone.competency),
-      title: milestone.title,
-      objective: milestone.detail,
-      estimate_minutes: milestone.estimateMinutes,
-      status: "not_started",
-    })),
-  );
-  requireSuccess(missionResult.error);
 
   const memoryResult = await context.supabase.from("memory_items").insert([
     {
@@ -256,35 +243,152 @@ export async function completeOnboarding(context: WorkspaceContext, input: Onboa
 
   return onboardingResultSchema.parse({
     project: { ...project, weeklyHours: input.weeklyHours },
-    milestones,
   });
+}
+
+// Read the roadmap DAG for a project and derive each milestone's display state. Only
+// missions with a sort_order belong to the roadmap (decision-generated missions have none).
+async function readRoadmapMissions(supabase: SupabaseClient, userId: string, projectId: string): Promise<RoadmapMilestone[]> {
+  const result = await supabase
+    .from("build_missions")
+    .select("id, title, objective, estimate_minutes, competency_id, status, depends_on, sort_order, kind")
+    .eq("user_id", userId)
+    .eq("project_id", projectId)
+    .not("sort_order", "is", null)
+    .order("sort_order", { ascending: true });
+  requireSuccess(result.error);
+
+  const rows = (result.data ?? []).map((row) => roadmapRowSchema.parse(row));
+  const completed = new Set(rows.filter((row) => row.status === "completed").map((row) => row.id));
+  const states = computeMilestoneStates(
+    rows.map((row) => ({ key: row.id, dependsOn: row.depends_on ?? [] })),
+    completed,
+  );
+
+  return rows
+    .filter((row) => states[row.id])
+    .map((row) =>
+      roadmapMilestoneSchema.parse({
+        id: row.id,
+        state: states[row.id],
+        title: row.title,
+        detail: row.objective,
+        estimateMinutes: row.estimate_minutes,
+        competency: competencyLabelFor(row.competency_id, "Project practice"),
+        dependsOn: row.depends_on ?? [],
+        sortOrder: row.sort_order ?? 0,
+        kind: row.kind ?? "milestone",
+      }),
+    );
+}
+
+// Generate a roadmap DAG and persist it, resolving slug dependencies to mission UUIDs.
+// Non-completed roadmap missions are replaced; completed history is preserved.
+async function persistRoadmapMissions(supabase: SupabaseClient, userId: string, project: ActiveProject, gap: SkillGapVector): Promise<void> {
+  const milestones = await generateRoadmapWithProvider(project, gap);
+
+  const cleared = await supabase
+    .from("build_missions")
+    .delete()
+    .eq("user_id", userId)
+    .eq("project_id", project.id)
+    .not("sort_order", "is", null)
+    .neq("status", "completed");
+  requireSuccess(cleared.error);
+
+  const slugToId = new Map<string, string>();
+  let sortOrder = 0;
+  for (const milestone of milestones) {
+    const dependsOn = milestone.dependsOn
+      .map((slug) => slugToId.get(slug))
+      .filter((id): id is string => Boolean(id));
+    const inserted = await supabase
+      .from("build_missions")
+      .insert({
+        user_id: userId,
+        project_id: project.id,
+        competency_id: milestone.competencyId,
+        title: milestone.title,
+        objective: milestone.detail,
+        acceptance_criteria: [],
+        estimate_minutes: milestone.estimateMinutes,
+        status: "not_started",
+        depends_on: dependsOn,
+        sort_order: sortOrder,
+        kind: milestone.kind,
+        metadata: { slug: milestone.slug, source: "diagnostic-roadmap" },
+      })
+      .select("id")
+      .single();
+    requireSuccess(inserted.error);
+    slugToId.set(milestone.slug, z.object({ id: z.string().uuid() }).parse(inserted.data).id);
+    sortOrder += 1;
+  }
 }
 
 export async function getRoadmap(context: WorkspaceContext) {
   if (context.mode === "demo") return demoRoadmap;
 
   const project = await ensureActiveProject(context.supabase, context.userId);
-  const result = await context.supabase
-    .from("build_missions")
-    .select("id, title, objective, estimate_minutes, competency_id, status")
+  const existing = await readRoadmapMissions(context.supabase, context.userId, project.id);
+  if (existing.length > 0) return existing;
+
+  // No roadmap yet (diagnostic not taken): generate a neutral one so the workspace is populated.
+  await persistRoadmapMissions(context.supabase, context.userId, project, neutralGapVector());
+  return readRoadmapMissions(context.supabase, context.userId, project.id);
+}
+
+export async function getSkillGapVector(context: WorkspaceContext): Promise<SkillGapVector> {
+  if (context.mode === "demo") return neutralGapVector();
+
+  const project = await ensureActiveProject(context.supabase, context.userId);
+  const run = await context.supabase
+    .from("diagnostic_runs")
+    .select("gap_vector")
     .eq("user_id", context.userId)
     .eq("project_id", project.id)
-    .neq("status", "completed")
-    .order("created_at", { ascending: true })
-    .limit(3);
-  requireSuccess(result.error);
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  requireSuccess(run.error);
 
-  return (result.data ?? []).map((row, index) => {
-    const mission = roadmapRowSchema.parse(row);
-    return roadmapMilestoneSchema.parse({
-      id: mission.id,
-      state: index === 0 ? "now" : index === 1 ? "next" : "later",
-      title: mission.title,
-      detail: mission.objective,
-      estimateMinutes: mission.estimate_minutes,
-      competency: competencyLabelFor(mission.competency_id, "Project practice"),
-    });
+  const parsed = run.data ? skillGapVectorSchema.safeParse(run.data.gap_vector) : null;
+  return parsed?.success ? parsed.data : neutralGapVector();
+}
+
+// Record a completed diagnostic: persist the gap vector, one skill_evidence row per
+// competency, and regenerate the roadmap from the new vector.
+export async function persistDiagnostic(context: WorkspaceContext, gap: SkillGapVector): Promise<DiagnosticResult> {
+  if (context.mode === "demo") {
+    const milestones = await generateRoadmapWithProvider(demoProject, gap);
+    return diagnosticResultSchema.parse({ gapVector: gap, milestones: generatedToContract(milestones) });
+  }
+
+  const project = await ensureActiveProject(context.supabase, context.userId);
+
+  const run = await context.supabase.from("diagnostic_runs").insert({
+    user_id: context.userId,
+    project_id: project.id,
+    gap_vector: gap,
+    question_bank_version: QUESTION_BANK_VERSION,
   });
+  requireSuccess(run.error);
+
+  const evidence = await context.supabase.from("skill_evidence").insert(
+    gap.map((entry) => ({
+      user_id: context.userId,
+      project_id: project.id,
+      competency_id: entry.competencyId,
+      state: entry.state,
+      source_type: "diagnostic",
+      note: `Diagnostic score ${entry.score}/100`,
+    })),
+  );
+  requireSuccess(evidence.error);
+
+  await persistRoadmapMissions(context.supabase, context.userId, project, gap);
+  const milestones = await readRoadmapMissions(context.supabase, context.userId, project.id);
+  return diagnosticResultSchema.parse({ gapVector: gap, milestones });
 }
 
 export async function getMemoryItems(context: WorkspaceContext) {
@@ -303,7 +407,7 @@ export async function getMemoryItems(context: WorkspaceContext) {
   return (result.data ?? []).map((row) => memoryItemSchema.parse(memoryRowSchema.parse(row)));
 }
 
-export async function persistDecisionBrief(context: WorkspaceContext, brief: DecisionBrief): Promise<DecisionBrief> {
+export async function persistDecisionBrief(context: WorkspaceContext, brief: DecisionBrief, consensus?: ConsensusReport): Promise<DecisionBrief> {
   if (context.mode === "demo") return brief;
 
   const project = await ensureActiveProject(context.supabase, context.userId);
@@ -357,7 +461,10 @@ export async function persistDecisionBrief(context: WorkspaceContext, brief: Dec
     ...brief,
     nextAction: { ...brief.nextAction, id: missionId },
   };
-  const update = await context.supabase.from("decisions").update({ brief: persistedBrief }).eq("id", decisionId);
+  const update = await context.supabase
+    .from("decisions")
+    .update({ brief: persistedBrief, consensus: consensus ?? null })
+    .eq("id", decisionId);
   requireSuccess(update.error);
 
   return persistedBrief;
@@ -371,7 +478,7 @@ export async function getLatestDecisionState(context: WorkspaceContext): Promise
   const project = await ensureActiveProject(context.supabase, context.userId);
   const result = await context.supabase
     .from("decisions")
-    .select("brief")
+    .select("brief, consensus")
     .eq("user_id", context.userId)
     .eq("project_id", project.id)
     .eq("status", "ready")
@@ -387,6 +494,7 @@ export async function getLatestDecisionState(context: WorkspaceContext): Promise
 
   const decision = decisionRowSchema.parse(result.data);
   const brief = decisionStateSchema.shape.brief.parse(decision.brief);
+  const consensus = decision.consensus ? consensusReportSchema.safeParse(decision.consensus) : null;
   const mission = await context.supabase
     .from("build_missions")
     .select("status")
@@ -398,6 +506,7 @@ export async function getLatestDecisionState(context: WorkspaceContext): Promise
   return decisionStateSchema.parse({
     brief,
     missionStatus: missionStatusSchema.parse(mission.data?.status ?? "not_started"),
+    consensus: consensus?.success ? consensus.data : undefined,
   });
 }
 
