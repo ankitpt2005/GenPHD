@@ -47,12 +47,14 @@ Daily streak, streak freezes, spaced repetition on missed concepts, "knowledge i
 - [ ] UI: streak widget, review queue, staleness banner
 - Note: current copy says "progress is outcomes, not streaks" — revise when built (decision: add streaks per vision).
 
-### ⬜ 5. Live coding challenges + AI grader
-Auto-generated, framework-current challenges with an AI grader (not multiple choice).
-- [ ] Challenge generator (per competency/milestone, framework-current)
-- [ ] Code editor surface + submission
-- [ ] AI grader (rubric-based; sandboxed execution is a later enhancement)
-- [ ] Wire into `/challenges` (currently reskins the decision brief's next action)
+### ✅ 5. Live coding challenges + AI grader
+Framework-current coding challenges with an AI grader (not multiple choice).
+- [x] Versioned, framework-current challenge bank, one per competency (`lib/challenges/bank.ts`) — LangChain/LangGraph/pgvector/OpenAI SDK tasks with server-only grading `signals`
+- [x] AI grader: rubric-based LLM grading with a deterministic signal-coverage fallback (`lib/challenges/grader.ts`)
+- [x] Code editor surface + per-criterion grade result + score (`components/genphd-app.tsx` → `Challenges`)
+- [x] `GET /api/challenges` (public, no signals) + `POST /api/challenges/grade`
+- [x] Passing records challenge-sourced `skill_evidence` and bumps the gap vector (migration `0005`)
+- [ ] Follow-on: real sandboxed code execution (currently rubric/heuristic grading, no code is run); LLM auto-generation of fresh challenge variants
 
 ---
 
@@ -69,8 +71,8 @@ Auto-generated, framework-current challenges with an AI grader (not multiple cho
 
 ## Next up
 1. Streak + adaptive review (pillar 4) — decision made to add streaks per vision; revise the "not streaks" copy.
-2. Live coding challenges + AI grader (pillar 5) — largest lift; rubric-based grading first, sandboxed execution later.
+2. Sandboxed execution for coding challenges (follow-on to pillar 5).
 3. Landing page diagnostic-first CTA.
 
 ## Migrations
-`0001` core · `0002` decision brief persistence · `0003` diagnostic + roadmap DAG · `0004` multi-model consensus
+`0001` core · `0002` decision brief persistence · `0003` diagnostic + roadmap DAG · `0004` multi-model consensus · `0005` coding challenges

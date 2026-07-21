@@ -15,6 +15,7 @@ import {
   ChevronRight,
   CircleHelp,
   Clock3,
+  Code2,
   Command,
   ExternalLink,
   FileCheck2,
@@ -51,6 +52,12 @@ import {
   type ActiveProject,
   type RoadmapMilestone,
 } from "../lib/workspace/contracts";
+<<<<<<< HEAD
+=======
+import { consensusReportSchema, type ConsensusReport } from "../lib/consensus/types";
+import { challengeGradeSchema, publicChallengeSchema, type ChallengeGrade, type PublicChallenge } from "../lib/challenges/types";
+import { COMPETENCIES, normalizeCompetencyId } from "../lib/competencies";
+>>>>>>> aed97a4 (feat: add coding challenges)
 
 export type WorkspacePage =
   | "dashboard"
@@ -73,7 +80,7 @@ const navItems: NavItem[] = [
   { id: "roadmap", label: "My roadmap", icon: Target },
   { id: "consensus", label: "Decisions", icon: BrainCircuit },
   { id: "projects", label: "My project", icon: FolderKanban },
-  { id: "challenges", label: "Build missions", icon: ListChecks },
+  { id: "challenges", label: "Coding challenges", icon: ListChecks },
   { id: "timeline", label: "Progress", icon: History },
   { id: "memory", label: "Learning memory", icon: BookOpen },
   { id: "settings", label: "Settings", icon: Settings },
@@ -264,6 +271,26 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
     setIsMobileMenuOpen(false);
     router.push(pagePaths[nextPage]);
   }, [router]);
+
+  // The coding challenge targets the roadmap's current focus (or the weakest competency).
+  const challengeCompetency = useMemo(() => {
+    const now = roadmap.find((milestone) => milestone.state === "now");
+    if (now) return normalizeCompetencyId(now.competency);
+    const weakest = [...gapVector].sort((a, b) => a.score - b.score)[0];
+    return weakest?.competencyId ?? "retrieval";
+  }, [roadmap, gapVector]);
+
+  const handleChallengePass = useCallback((competencyId: string, score: number) => {
+    setGapVector((previous) => {
+      const next = previous.map((entry) =>
+        entry.competencyId === competencyId
+          ? { ...entry, score: Math.max(entry.score, score), state: (score >= 76 ? "validated" : score >= 40 ? "practicing" : entry.state) as CompetencyScore["state"] }
+          : entry,
+      );
+      window.sessionStorage.setItem("genphd-gap-vector", JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     const tourTimer = window.setTimeout(() => {
@@ -521,7 +548,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
       case "projects":
         return <Projects brief={activeBrief} onDecision={() => setIsComposerOpen(true)} onUpdateProject={() => router.push("/onboarding")} project={project} roadmap={roadmap} />;
       case "challenges":
-        return <Challenges brief={activeBrief} isCompletingMission={isCompletingMission} missionError={missionError} missionComplete={missionComplete} onComplete={completeMission} onViewRoadmap={() => navigate("roadmap")} />;
+        return <Challenges key={challengeCompetency} competencyId={challengeCompetency} onPass={handleChallengePass} onViewRoadmap={() => navigate("roadmap")} />;
       case "timeline":
         return <Timeline brief={activeBrief} missionComplete={missionComplete} projectName={project.name} />;
       case "memory":
@@ -862,9 +889,83 @@ function Projects({ brief, onDecision, onUpdateProject, project, roadmap }: { br
   );
 }
 
-function Challenges({ brief, isCompletingMission, missionError, missionComplete, onComplete, onViewRoadmap }: { brief: DecisionBrief; isCompletingMission: boolean; missionError: string | null; missionComplete: boolean; onComplete: () => void; onViewRoadmap: () => void }) {
+function Challenges({ competencyId, onPass, onViewRoadmap }: { competencyId: string; onPass: (competencyId: string, score: number) => void; onViewRoadmap: () => void }) {
+  const [challenge, setChallenge] = useState<PublicChallenge | null>(null);
+  const [code, setCode] = useState("");
+  const [phase, setPhase] = useState<"loading" | "ready" | "grading" | "graded" | "error">("loading");
+  const [grade, setGrade] = useState<ChallengeGrade | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch(`/api/challenges?competency=${encodeURIComponent(competencyId)}`, { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("load"))))
+      .then((data: { challenge?: unknown }) => {
+        if (!active) return;
+        const parsed = data.challenge ? publicChallengeSchema.safeParse(data.challenge) : null;
+        if (parsed?.success) {
+          setChallenge(parsed.data);
+          setCode(parsed.data.starterCode);
+          setPhase("ready");
+        } else {
+          setPhase("error");
+        }
+      })
+      .catch(() => active && setPhase("error"));
+    return () => {
+      active = false;
+    };
+  }, [competencyId]);
+
+  async function submit() {
+    if (!challenge) return;
+    setPhase("grading");
+    setError(null);
+    const response = await fetch("/api/challenges/grade", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ challengeId: challenge.id, code }),
+    }).catch(() => null);
+
+    const payload: unknown = response ? await response.json().catch(() => null) : null;
+    if (!response?.ok) {
+      setError("Grading failed. Please retry.");
+      setPhase("ready");
+      return;
+    }
+    const parsed = z.object({ grade: challengeGradeSchema, competencyId: z.string() }).safeParse(payload);
+    if (!parsed.success) {
+      setError("Could not read the grade. Please retry.");
+      setPhase("ready");
+      return;
+    }
+    setGrade(parsed.data.grade);
+    setPhase("graded");
+    if (parsed.data.grade.passed) onPass(parsed.data.competencyId, parsed.data.grade.score);
+  }
+
+  if (phase === "loading") {
+    return (
+      <section className="reading-column">
+        <PageTitle eyebrow="Live coding challenge" title="Loading your challenge…" description="Fetching a framework-current task for your current focus." />
+      </section>
+    );
+  }
+
+  if (phase === "error" || !challenge) {
+    return (
+      <section className="reading-column">
+        <PageTitle eyebrow="Live coding challenge" title="No challenge available" description="Try again shortly, or continue from your roadmap." />
+        <button className="button button-primary" onClick={onViewRoadmap} type="button">Back to roadmap <ArrowRight size={16} /></button>
+      </section>
+    );
+  }
+
+  const isGrading = phase === "grading";
+
   return (
     <section className="reading-column">
+<<<<<<< HEAD
       <PageTitle eyebrow="Build mission" title={missionComplete ? "Mission complete" : brief.nextAction.title} description={missionComplete ? "Your reflection has updated the roadmap. Review the next milestone when you are ready." : "A focused task that improves the project and produces evidence about your engineering capability."} />
       <article className={`mission-detail ${missionComplete ? "is-complete" : ""}`}>
         <div className="mission-detail-header"><span className="mission-kicker"><Lightbulb size={15} /> {brief.nextAction.competency}</span><span className="time-estimate"><Clock3 size={14} /> {brief.nextAction.estimateMinutes} min</span></div>
@@ -876,6 +977,59 @@ function Challenges({ brief, isCompletingMission, missionError, missionComplete,
         {missionError ? <p className="inline-error" role="alert">{missionError}</p> : null}
       </article>
       {!missionComplete ? <CodingChallenge /> : null}
+=======
+      <PageTitle eyebrow="Live coding challenge" title={challenge.title} description="Write real code. An AI grader checks it against the criteria — this is not multiple choice." />
+      <div className="challenge-meta">
+        <span className="challenge-badge"><Code2 size={13} /> {challenge.language}</span>
+        <span className="challenge-badge">{challenge.framework}</span>
+        <span className="challenge-badge">{challenge.difficulty}</span>
+      </div>
+      <p className="challenge-scenario">{challenge.scenario}</p>
+
+      <div className="criteria-block">
+        <p className="eyebrow">What the grader checks</p>
+        <ul className="acceptance-list">
+          {challenge.criteria.map((criterion) => <li key={criterion}><Check size={15} /> {criterion}</li>)}
+        </ul>
+      </div>
+
+      <label className="code-editor-label" htmlFor="challenge-code">Your solution</label>
+      <textarea
+        className="code-editor"
+        id="challenge-code"
+        onChange={(event) => setCode(event.target.value)}
+        spellCheck={false}
+        value={code}
+      />
+
+      <div className="mission-actions">
+        <button className="button button-primary" disabled={isGrading || code.trim().length === 0} onClick={submit} type="button">
+          {isGrading ? "Grading…" : "Submit for grading"} <ArrowRight size={16} />
+        </button>
+        {grade?.passed ? <button className="button button-ghost" onClick={onViewRoadmap} type="button">View updated roadmap</button> : null}
+      </div>
+      {error ? <p className="inline-error" role="alert">{error}</p> : null}
+
+      {phase === "graded" && grade ? (
+        <article className={`grade-card ${grade.passed ? "is-pass" : "is-fail"}`}>
+          <div className="grade-top">
+            <span className={`grade-verdict ${grade.passed ? "is-pass" : "is-fail"}`}>{grade.passed ? "Passed" : "Not yet"}</span>
+            <span className="grade-score">{grade.score}/100</span>
+          </div>
+          <div className="gap-bar"><span className={`gap-fill ${grade.passed ? "validated" : "emerging"}`} style={{ width: `${grade.score}%` }} /></div>
+          <ul className="grade-criteria">
+            {grade.criteria.map((result) => (
+              <li className={result.met ? "is-met" : "is-missed"} key={result.criterion}>
+                {result.met ? <Check size={15} /> : <X size={15} />}
+                <span><strong>{result.criterion}</strong>{result.note ? <small>{result.note}</small> : null}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="grade-feedback">{grade.feedback}</p>
+          <p className="grade-source">{grade.gradedBy === "ai" ? "Graded by AI against the criteria." : "Graded offline by heuristic — add an AI provider key for correctness-aware grading."}</p>
+        </article>
+      ) : null}
+>>>>>>> aed97a4 (feat: add coding challenges)
     </section>
   );
 }

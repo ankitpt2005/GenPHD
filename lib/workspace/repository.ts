@@ -5,6 +5,7 @@ import type { DecisionBrief } from "../decision/types";
 import { completeMission, missionCompletionSchema, type CompleteMissionInput } from "../missions/complete";
 import { competencyLabel, normalizeCompetencyId, type CompetencyId } from "../competencies";
 import { consensusReportSchema, type ConsensusReport } from "../consensus/types";
+import type { Challenge, ChallengeGrade } from "../challenges/types";
 import { QUESTION_BANK_VERSION } from "../diagnostic/questions";
 import { neutralGapVector } from "../diagnostic/scoring";
 import { computeMilestoneStates, generateRoadmap, type GeneratedMilestone } from "../roadmap/generate";
@@ -504,6 +505,40 @@ export async function getLatestDecisionState(context: WorkspaceContext): Promise
     missionStatus: missionStatusSchema.parse(mission.data?.status ?? "not_started"),
     consensus: consensus?.success ? consensus.data : undefined,
   });
+}
+
+// Record a graded coding-challenge submission, and on a pass add challenge-sourced
+// skill evidence for the challenge's competency.
+export async function persistChallengeSubmission(context: WorkspaceContext, challenge: Challenge, code: string, grade: ChallengeGrade): Promise<void> {
+  if (context.mode === "demo") return;
+
+  const project = await ensureActiveProject(context.supabase, context.userId);
+  const competencyId = normalizeCompetencyId(challenge.competencyId);
+
+  const submission = await context.supabase.from("challenge_submissions").insert({
+    user_id: context.userId,
+    project_id: project.id,
+    challenge_id: challenge.id,
+    competency_id: competencyId,
+    code,
+    score: grade.score,
+    passed: grade.passed,
+    grade,
+  });
+  requireSuccess(submission.error);
+
+  if (grade.passed) {
+    const evidence = await context.supabase.from("skill_evidence").insert({
+      user_id: context.userId,
+      project_id: project.id,
+      competency_id: competencyId,
+      state: grade.score >= 90 ? "validated" : "practicing",
+      source_type: "challenge",
+      source_id: challenge.id,
+      note: `Coding challenge passed (${grade.score}/100)`,
+    });
+    requireSuccess(evidence.error);
+  }
 }
 
 export async function completePersistentMission(context: WorkspaceContext, input: CompleteMissionInput) {
