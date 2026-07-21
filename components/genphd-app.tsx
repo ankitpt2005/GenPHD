@@ -10,6 +10,7 @@ import {
   BookOpen,
   Bot,
   BrainCircuit,
+  Code2,
   Check,
   ChevronRight,
   CircleHelp,
@@ -39,6 +40,7 @@ import { decisionBriefSchema, type DecisionBrief } from "../lib/decision/types";
 import { getBrowserPublicRuntimeConfig } from "../lib/runtime/public-config.client";
 import { SignOutButton } from "./auth/sign-out-button";
 import { z } from "zod";
+import { challengeGradeSchema, publicChallengeSchema, type ChallengeGrade, type PublicChallenge } from "../lib/challenges/types";
 import {
   activeProjectSchema,
   decisionStateSchema,
@@ -833,6 +835,59 @@ function Challenges({ brief, isCompletingMission, missionError, missionComplete,
         <div className="mission-actions">{missionComplete ? <button className="button button-primary" onClick={onViewRoadmap} type="button">View updated roadmap <ArrowRight size={16} /></button> : <button className="button button-primary" disabled={isCompletingMission} onClick={onComplete} type="button">{isCompletingMission ? "Saving outcome…" : "Complete mission"} <Check size={16} /></button>}</div>
         {missionError ? <p className="inline-error" role="alert">{missionError}</p> : null}
       </article>
+      {!missionComplete ? <CodingChallenge /> : null}
+    </section>
+  );
+}
+
+function CodingChallenge() {
+  const [challenge, setChallenge] = useState<PublicChallenge | null>(null);
+  const [code, setCode] = useState("");
+  const [grade, setGrade] = useState<ChallengeGrade | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "grading" | "error">("loading");
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/challenges", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("Challenge unavailable")))
+      .then((payload: { challenge?: unknown }) => {
+        const parsed = publicChallengeSchema.safeParse(payload.challenge);
+        if (!active || !parsed.success) throw new Error("Challenge unavailable");
+        setChallenge(parsed.data);
+        setCode(parsed.data.starterCode);
+        setStatus("ready");
+      })
+      .catch(() => { if (active) setStatus("error"); });
+    return () => { active = false; };
+  }, []);
+
+  async function submit() {
+    if (!challenge) return;
+    setStatus("grading");
+    const response = await fetch("/api/challenges/grade", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ challengeId: challenge.id, code }),
+    }).catch(() => null);
+    const payload: unknown = response ? await response.json().catch(() => null) : null;
+    const parsed = z.object({ grade: challengeGradeSchema }).safeParse(payload);
+    if (!response?.ok || !parsed.success) { setStatus("error"); return; }
+    setGrade(parsed.data.grade);
+    setStatus("ready");
+  }
+
+  if (status === "loading") return <section className="challenge-practice"><p className="eyebrow">Practice challenge</p><p>Loading a focused coding exercise…</p></section>;
+  if (status === "error" || !challenge) return <section className="challenge-practice"><p className="eyebrow">Practice challenge</p><p>Challenge grading is unavailable. Your build mission is still ready to complete.</p></section>;
+
+  return (
+    <section className="challenge-practice">
+      <div className="section-heading"><div><p className="eyebrow">Practice challenge</p><h2>{challenge.title}</h2></div><span className="challenge-badge"><Code2 size={13} /> {challenge.language} · {challenge.framework}</span></div>
+      <p className="challenge-scenario">{challenge.scenario}</p>
+      <div className="criteria-block"><p className="eyebrow">What the grader checks</p><ul className="acceptance-list">{challenge.criteria.map((criterion) => <li key={criterion}><Check size={15} /> {criterion}</li>)}</ul></div>
+      <label className="code-editor-label" htmlFor="challenge-code">Your solution</label>
+      <textarea className="code-editor" id="challenge-code" onChange={(event) => setCode(event.target.value)} spellCheck={false} value={code} />
+      <button className="button button-primary" disabled={status === "grading"} onClick={submit} type="button">{status === "grading" ? "Grading…" : "Submit for grading"} <ArrowRight size={16} /></button>
+      {grade ? <article className={`grade-card ${grade.passed ? "is-pass" : "is-fail"}`}><div className="grade-top"><strong className={`grade-verdict ${grade.passed ? "is-pass" : "is-fail"}`}>{grade.passed ? "Ready to apply" : "Not yet"}</strong><span className="grade-score">{grade.score}/100</span></div><ul className="grade-criteria">{grade.criteria.map((criterion) => <li className={criterion.met ? "is-met" : "is-missed"} key={criterion.criterion}><Check size={15} /><span><strong>{criterion.criterion}</strong><small>{criterion.note}</small></span></li>)}</ul><p className="grade-feedback">{grade.feedback}</p><p className="grade-source">Graded offline without executing your code. Complete the build mission to record learning evidence.</p></article> : null}
     </section>
   );
 }
