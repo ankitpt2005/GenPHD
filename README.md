@@ -77,17 +77,75 @@ flowchart LR
 - **Provider keys are server-only.** The browser never receives OpenAI, OpenRouter, or Groq credentials.
 - **AI output is schema-validated** before being shown or persisted. Invalid provider responses fall back safely.
 
-## Judge walkthrough
+## GPT-5.6 integration
 
-The shortest way to evaluate the product:
+GenPHD uses a server-only, OpenAI-compatible provider boundary rather than calling a model from the browser.
+
+- When `OPENAI_API_KEY` is configured, Decision Brief generation can use **GPT-5.6** through `OPENAI_MODEL` (the project default is `gpt-5.6-sol`).
+- GPT-5.6 receives the project question and bounded project context, then returns a **strict JSON Decision Brief**: recommendation, summary, confidence reason, trade-off, counterfactual, sources, conflicts, and a next action.
+- The response is parsed with Zod before it reaches the UI or database. A malformed or unavailable response falls through the configured provider order, then to deterministic guidance so the workspace remains usable.
+- The dedicated consensus action fans a question out to multiple configured models, reconciles agreements and conflicts, and returns one trusted next step. It is user-triggered rather than silently run, so model cost stays explicit.
+- The same server-side provider pattern supports content drafting and optional correctness-aware challenge grading. Provider keys never enter the client bundle.
+
+Set `OPENAI_API_KEY` and optionally `OPENAI_MODEL` in `.env.local` or Render to enable GPT-5.6. See [`lib/decision/provider.ts`](lib/decision/provider.ts) for the typed fallback chain.
+
+## Key product and engineering decisions
+
+| Decision | Why it matters |
+| --- | --- |
+| Structured Decision Briefs instead of chat | Engineers need visible evidence, trade-offs, conflicts, and a next action—not a stream of untraceable answers. |
+| One active project context | Keeps every recommendation grounded in current constraints and prevents a generic “AI advisor” experience. |
+| Diagnostic-led roadmap | Skills are inferred from evidence and prerequisite gaps, rather than forcing every user through the same curriculum. |
+| Explicit multi-model consensus | Higher-stakes questions can surface agreement and disagreement without charging for fan-out on every routine request. |
+| Supabase RLS + server-verified sessions | Private project intelligence is user-scoped at the database and API layers. |
+| Provider validation and deterministic fallback | The product continues to provide a coherent, safe response when a model or provider is unavailable. |
+| Next.js monolith for the hackathon | Keeps deployment, auth, data access, and iteration fast without pretending microservices are necessary at this stage. |
+
+## How Codex accelerated the build
+
+Codex was used as an implementation partner throughout the project, while product and security choices remained deliberate human decisions.
+
+- It translated the PRD, UI blueprint, and system design into the Next.js workspace structure, typed contracts, and API routes.
+- It accelerated UI iteration across the landing experience, protected authentication flow, dashboard, navigation, and responsive states.
+- It helped implement and verify typed provider fallbacks, multi-model consensus, diagnostic scoring, roadmap generation, coding challenge grading, and Supabase persistence boundaries.
+- It supported production readiness work: resolving merge conflicts, keeping the Docker deployment compact, running TypeScript/tests/production builds, and checking authentication and security flows.
+- Human review directed the core product identity: evidence over noise, project-scoped memory, explicit consent for model fan-out, and a calm non-dashboard-template interface.
+
+## Judge test plan
+
+The full product can be tested with your own project. No proprietary dataset is required.
+
+### Sample project input
+
+Use this during onboarding for a representative end-to-end evaluation:
+
+| Field | Sample value |
+| --- | --- |
+| Project name | `DocuQuery` |
+| Outcome | A source-grounded document assistant that makes retrieval quality visible. |
+| Stack | `Python`, `FastAPI`, `pgvector` |
+| Time available | `6 hours this week` |
+| Current blocker | Deciding which evaluation work proves retrieval is reliable enough to ship. |
+
+### Manual product checks
 
 1. Visit the [live app](https://genphd.onrender.com) and choose **Start one project**.
-2. Create an account, verify the email link, then sign in through the protected authentication flow.
-3. Complete onboarding with a real AI project and its constraints.
-4. Run the diagnostic, or skip it to inspect the default starter path.
-5. From **Dashboard**, ask a technical decision. Review the evidence, trade-off, confidence, and attached mission.
-6. Open **My roadmap** to see the ordered learning path, then **Build missions** or **Coding challenges** to produce evidence.
-7. Open **Learning memory** to see the project context and decision history that influence the next recommendation.
+2. Create an account, complete email verification, and sign in through the Supabase + Turnstile protected flow.
+3. Enter the sample project above. Confirm that onboarding creates a project and an ordered roadmap.
+4. Run the diagnostic, or select **Skip for now** to inspect the starter path.
+5. From **Dashboard**, ask: **“Should I use pgvector or Pinecone for this RAG project?”** Review the Decision Brief’s recommendation, evidence, trade-off, confidence, and next action.
+6. In **Decisions**, use the consensus option. When live provider keys are configured, inspect model agreements/conflicts; otherwise verify the clearly labelled deterministic fallback.
+7. Open **My roadmap**, start a Build Mission, and complete it. Confirm that progress and learning evidence update.
+8. Open **Coding challenges**, submit a solution, and inspect criterion-based feedback. With an AI provider key, the grader adds correctness-aware feedback; without one it uses the disclosed heuristic fallback.
+9. Open **Learning memory** to confirm the project context and decision history remain visible and scoped to the workspace.
+
+### Automated checks
+
+```powershell
+npm run typecheck
+npm test
+npm run build
+```
 
 ## Workspace surfaces
 
@@ -152,6 +210,12 @@ Never commit `.env.local`, provider keys, database passwords, or Turnstile secre
 4. Run [`supabase/seed.sql`](supabase/seed.sql) to load the competency and source catalog.
 5. Enable Cloudflare Turnstile in **Supabase Auth → Bot and Abuse Protection**. Store the matching Turnstile secret there, not in application code.
 
+### Included sample data
+
+[`supabase/seed.sql`](supabase/seed.sql) supplies the shared catalog used by the product: six GenAI competencies (prompting, embeddings, vector databases, retrieval, agent frameworks, and evaluations) plus official source references for LangGraph and OpenAI evaluation guidance.
+
+It intentionally **does not** create fake user accounts or private projects. Use the [sample project input](#sample-project-input) in the judge test plan to create a real workspace and exercise the product loop.
+
 `GENPHD_ALLOW_DEMO_MODE` is deliberately `false` by default. It can be enabled only for local, non-production exploration without Supabase.
 
 ## API highlights
@@ -167,14 +231,6 @@ Never commit `.env.local`, provider keys, database passwords, or Turnstile secre
 | `POST /api/missions/complete` | Records a completed mission and updates learning evidence. |
 | `GET /api/memory` | Returns the visible, project-scoped memory used by the workspace. |
 | `GET /api/health` | Deployment health check. |
-
-## Verify before shipping
-
-```powershell
-npm run typecheck
-npm test
-npm run build
-```
 
 ## Deployment
 
