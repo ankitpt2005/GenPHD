@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "./brand-logo";
 import type { ReactNode } from "react";
 import {
   ArrowRight,
@@ -56,8 +57,7 @@ export function PublicHeader() {
   return (
     <header className="public-header">
       <Link aria-label="GenPHD home" className="brand public-brand" href="/">
-        <span className="brand-mark">G</span>
-        <span className="brand-name">GenPHD</span>
+        <BrandLogo className="public-brand-logo" priority />
       </Link>
       <nav aria-label="Public navigation" className="public-nav">
         {navigation.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}

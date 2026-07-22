@@ -105,6 +105,10 @@ button:disabled {
   font-size: 16px;
 }
 
+.workspace-brand-logo {
+  max-width: 128px;
+}
+
 .icon-button {
   position: relative;
   display: inline-grid;
@@ -356,6 +360,7 @@ kbd {
 }
 
 .sidebar.is-collapsed .brand-name,
+.sidebar.is-collapsed .workspace-brand-logo,
 .sidebar.is-collapsed .project-switcher > div,
 .sidebar.is-collapsed .project-switcher > svg,
 .sidebar.is-collapsed .nav-button span,
@@ -2836,6 +2841,10 @@ kbd {
   width: fit-content;
   color: var(--text-primary);
   text-decoration: none;
+}
+
+.public-brand-logo {
+  width: 128px !important;
 }
 
 .public-nav {

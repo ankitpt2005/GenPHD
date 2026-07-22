@@ -40,6 +40,7 @@ import { seedDecisionBrief } from "../lib/decision/brief";
 import { decisionBriefSchema, type DecisionBrief } from "../lib/decision/types";
 import { getBrowserPublicRuntimeConfig } from "../lib/runtime/public-config.client";
 import { SignOutButton } from "./auth/sign-out-button";
+import { BrandLogo } from "./brand-logo";
 import { z } from "zod";
 import { challengeGradeSchema, publicChallengeSchema, type ChallengeGrade, type PublicChallenge } from "../lib/challenges/types";
 import { consensusReportSchema, type ConsensusReport } from "../lib/consensus/types";
@@ -578,8 +579,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
       <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
         <div className="sidebar-top">
           <button className="brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
-            <span className="brand-mark">G</span>
-            <span className="brand-name">GenPHD</span>
+            <BrandLogo className="workspace-brand-logo" priority />
           </button>
           <button className="icon-button sidebar-toggle" onClick={() => setIsSidebarOpen((current) => !current)} type="button" aria-label="Toggle sidebar">
             {isSidebarOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
