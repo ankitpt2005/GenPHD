@@ -1,17 +1,4 @@
 import { z } from "zod";
-<<<<<<< HEAD
-import { confidenceSchema, decisionBriefSchema } from "../decision/types";
-
-export const consensusReportSchema = z.object({
-  mode: z.enum(["multi", "single", "deterministic"]),
-  brief: decisionBriefSchema,
-  models: z.array(z.object({ provider: z.string(), recommendation: z.string(), summary: z.string() })).min(1).max(3),
-  agreements: z.array(z.string()).max(3),
-  conflicts: z.array(z.string()).max(3),
-  confidence: confidenceSchema,
-});
-
-=======
 import { confidenceSchema } from "../decision/types";
 
 // One model's answer in the consensus panel.
@@ -44,5 +31,4 @@ export const consensusReportSchema = z.object({
 
 export type ModelAnswer = z.infer<typeof modelAnswerSchema>;
 export type ConsensusConflict = z.infer<typeof consensusConflictSchema>;
->>>>>>> a0a457e (feat: add diagnostic, roadmap DAG, and multi-model consensus)
 export type ConsensusReport = z.infer<typeof consensusReportSchema>;

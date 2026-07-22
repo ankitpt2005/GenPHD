@@ -4,7 +4,6 @@ import { FormEvent, useState } from "react";
 import { ArrowRight, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/browser";
-import { getBrowserPublicRuntimeConfig } from "../../lib/runtime/public-config.client";
 import { Turnstile } from "./turnstile";
 
 type SignInFormProps = {
@@ -32,15 +31,12 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard", turnst
   const isSignup = mode === "signup";
   const passwordIsStrong = isStrongPassword(password);
   const actionLabel = isSignup ? "Create account and continue" : "Sign in securely";
-  // Turnstile is enforced only when a site key is configured; otherwise (local dev without
-  // Cloudflare) auth proceeds without a CAPTCHA. Production sets the key, so it stays gated.
-  const captchaRequired = Boolean(getBrowserPublicRuntimeConfig().turnstileSiteKey);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
-    if (captchaRequired && !captchaToken) {
+    if (!captchaToken) {
       setError("Complete human verification before continuing.");
       return;
     }
@@ -62,7 +58,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard", turnst
           email: normalizedEmail,
           password,
           options: {
-            captchaToken: captchaToken ?? undefined,
+            captchaToken,
             emailRedirectTo: callbackUrl.toString(),
           },
         });
@@ -80,7 +76,7 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard", turnst
         const { data, error: authError } = await supabase.auth.signInWithPassword({
           email: normalizedEmail,
           password,
-          options: { captchaToken: captchaToken ?? undefined },
+          options: { captchaToken },
         });
 
         if (authError || !data.session) throw authError ?? new Error("No active session was created.");
@@ -144,15 +140,11 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard", turnst
       </div>
       {isSignup ? <p className={`password-requirement ${password && !passwordIsStrong ? "is-warning" : ""}`}><CheckCircle2 aria-hidden="true" size={14} /> Use 12+ characters with at least three character types.</p> : null}
 
-<<<<<<< HEAD
       <Turnstile onError={setCaptchaError} onTokenChange={setCaptchaToken} resetSignal={resetSignal} siteKey={turnstileSiteKey} />
-=======
-      {captchaRequired ? <Turnstile onError={setCaptchaError} onTokenChange={setCaptchaToken} resetSignal={resetSignal} /> : null}
->>>>>>> a0a457e (feat: add diagnostic, roadmap DAG, and multi-model consensus)
       {captchaError ? <p className="inline-error" role="alert">{captchaError}</p> : null}
       {error ? <p className="inline-error" role="alert">{error}</p> : null}
 
-      <button className="button button-primary" disabled={isSubmitting || (captchaRequired && !captchaToken) || (isSignup && !passwordIsStrong)} type="submit">
+      <button className="button button-primary" disabled={isSubmitting || !captchaToken || (isSignup && !passwordIsStrong)} type="submit">
         {isSubmitting ? "Securing your session..." : actionLabel}
         <ArrowRight aria-hidden="true" size={16} />
       </button>

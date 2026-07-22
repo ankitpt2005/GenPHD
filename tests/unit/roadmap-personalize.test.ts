@@ -6,8 +6,8 @@ describe("personalizeRoadmap", () => {
   it("prioritizes a milestone that matches the lowest diagnostic score", () => {
     const diagnostic = gradeDiagnostic({ prompting: 1, embeddings: 1, "vector-dbs": 1, retrieval: 0, "agent-frameworks": 1, evals: 1 });
     const roadmap = personalizeRoadmap([
-      { id: "eval", state: "now", title: "Write evaluation checks", detail: "pass fail", estimateMinutes: 45, competency: "Evaluation" },
-      { id: "retrieve", state: "next", title: "Inspect retrieval", detail: "retrieved chunks", estimateMinutes: 45, competency: "Retrieval" },
+      { id: "eval", state: "now", title: "Write evaluation checks", detail: "pass fail", estimateMinutes: 45, competency: "Evaluation", dependsOn: [], sortOrder: 0, kind: "milestone" },
+      { id: "retrieve", state: "next", title: "Inspect retrieval", detail: "retrieved chunks", estimateMinutes: 45, competency: "Retrieval", dependsOn: [], sortOrder: 1, kind: "milestone" },
     ], diagnostic);
     expect(roadmap[0]).toMatchObject({ id: "retrieve", state: "now" });
   });
