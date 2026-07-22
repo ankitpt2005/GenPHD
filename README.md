@@ -1,84 +1,187 @@
 # GenPHD
 
-GenPHD is an AI-powered learning companion that accelerates personalized human development through adaptive learning, trusted AI guidance, and continuously evolving skill roadmaps.
+### Decision intelligence for AI engineers
 
-It is a decision-intelligence workspace for AI engineers: turn an active project question into an evidence-aware Decision Brief, a focused Build Mission, and updated learning evidence.
+**GenPHD turns a scattered technical question into one evidence-backed next move — then remembers what the project learned.**
+
+[Open the live product](https://genphd.onrender.com) · [See the product requirements](docs/01-product-requirements.md) · [Read the architecture](docs/03-system-design.md)
+
+---
+
+## Why GenPHD
+
+AI engineers rarely lack advice. They lack a reliable way to decide **what to trust, what to build next, and what evidence to carry forward**.
+
+GenPHD is not another chat window or a generic dashboard. It is a private workspace that connects:
+
+1. **Project context** — outcome, stack, constraints, time, and blocker.
+2. **Decision intelligence** — an evidence-aware brief with trade-offs, conflicts, and a bounded next action.
+3. **Deliberate practice** — a roadmap, build mission, and coding challenge that turn advice into proof of capability.
+4. **Learning memory** — a traceable record that improves the next decision instead of rewarding streaks.
+
+> **One question → one trusted recommendation → one buildable mission → durable learning evidence.**
+
+## Product loop
+
+| Step | What the engineer does | What GenPHD delivers |
+| --- | --- | --- |
+| 1. Frame the work | Describe the project, stack, available time, and current blocker. | A private project context. |
+| 2. Diagnose the gap | Take a short adaptive baseline across six GenAI competencies. | A skill-gap vector and prerequisite-aware roadmap. |
+| 3. Ask a decision | Ask a real question such as *“Should I use pgvector or Pinecone for this RAG project?”* | A Decision Brief with evidence, trade-offs, conflicts, confidence, and a next move. |
+| 4. Compare perspectives | Request consensus for higher-stakes choices. | Multi-model agreements, disagreements, and one reconciled next step. |
+| 5. Build proof | Complete a focused mission or practical coding challenge. | Recorded completion and competency evidence. |
+| 6. Continue with context | Return to the dashboard, roadmap, or memory. | A workspace that remembers what changed and why. |
+
+## What makes it different
+
+| Capability | GenPHD approach |
+| --- | --- |
+| Decision support | Structured briefs, not unbounded chatbot replies. Every recommendation exposes its evidence and trade-off. |
+| Personalization | Roadmaps are shaped by project constraints and diagnostic gaps, not a fixed course sequence. |
+| Multi-model consensus | Configured models are fanned out and reconciled into agreements, conflicts, and a trusted next step. |
+| Skill evidence | Progress is tied to missions and practical work, not engagement metrics or streaks. |
+| Memory | Project context, decisions, and evidence remain visible and scoped to the active workspace. |
+| Safe fallback | AI flows degrade from multi-model → single model → deterministic guidance when a provider is unavailable. |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[AI engineer] --> W[Next.js workspace]
+    W --> A[Secure API layer]
+
+    A --> P[Project context]
+    A --> D[Decision engine]
+    A --> G[Diagnostic + roadmap engine]
+    A --> C[Coding challenge grader]
+
+    D --> M[Consensus reconciler]
+    M --> AI[OpenAI / OpenRouter / Groq]
+    D --> AI
+    C --> AI
+
+    A --> S[(Supabase Postgres)]
+    S --> R[RLS-scoped projects, decisions, missions, memory]
+
+    U --> T[Cloudflare Turnstile]
+    T --> A
+    U --> AU[Supabase Auth]
+    AU --> A
+```
+
+### Trust boundary
+
+- **Supabase Auth** verifies sessions on the server; workspace routes are not available before authentication.
+- **Row Level Security** scopes projects, decisions, roadmaps, missions, diagnostic runs, and memory to the signed-in user.
+- **Cloudflare Turnstile** protects sign-up and sign-in; its secret stays in Supabase Auth, never in this repository.
+- **Provider keys are server-only.** The browser never receives OpenAI, OpenRouter, or Groq credentials.
+- **AI output is schema-validated** before being shown or persisted. Invalid provider responses fall back safely.
+
+## Judge walkthrough
+
+The shortest way to evaluate the product:
+
+1. Visit the [live app](https://genphd.onrender.com) and choose **Start one project**.
+2. Create an account, verify the email link, then sign in through the protected authentication flow.
+3. Complete onboarding with a real AI project and its constraints.
+4. Run the diagnostic, or skip it to inspect the default starter path.
+5. From **Dashboard**, ask a technical decision. Review the evidence, trade-off, confidence, and attached mission.
+6. Open **My roadmap** to see the ordered learning path, then **Build missions** or **Coding challenges** to produce evidence.
+7. Open **Learning memory** to see the project context and decision history that influence the next recommendation.
+
+## Workspace surfaces
+
+| Surface | Purpose |
+| --- | --- |
+| Dashboard | Answers: **“What should I do today?”** |
+| My roadmap | Answers: **“What should I learn next?”** |
+| Decisions | Answers: **“What should I trust?”** |
+| My project | Keeps scope, stack, time, and constraints visible. |
+| Build missions | Turns a decision into a small, testable action. |
+| Coding challenges | Lets users submit practical code and receive criterion-based grading. |
+| Progress | Records meaningful work, not activity noise. |
+| Learning memory | Shows the context and evidence shaping future decisions. |
+
+## Tech stack
+
+- **Frontend:** Next.js 16, React, TypeScript, CSS
+- **Authentication and database:** Supabase Auth + Postgres + Row Level Security
+- **AI orchestration:** typed provider boundary for OpenAI, OpenRouter, and Groq
+- **Bot protection:** Cloudflare Turnstile with server-validated Supabase sessions
+- **Validation:** Zod schemas, unit tests, typed API contracts
+- **Deployment:** compact multi-stage Docker image on Render
 
 ## Run locally
 
+### Prerequisites
+
+- Node.js 22+
+- A Supabase project for private workspaces
+- A Cloudflare Turnstile widget for authentication protection
+- At least one AI provider key for live AI generation (OpenAI, OpenRouter, or Groq)
+
 ```powershell
-npm install
+git clone https://github.com/ankitpt2005/GenPHD.git
+cd GenPHD
+npm ci
+Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Open `http://127.0.0.1:3000`.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Current working flow
+### Required configuration
 
-1. Start at the landing page, then sign up or sign in.
-2. Complete onboarding to establish the active project context.
-3. Take the adaptive diagnostic (or skip it). It produces a skill-gap vector across the six GenAI competencies and generates a personalized roadmap DAG that targets your weakest areas in prerequisite order and ends at a shippable capstone artifact.
-4. Ask a technical decision from the dashboard or Decisions view; the API returns a typed, source-aware Decision Brief.
-5. Start the attached Build Mission, complete it, and review the updated roadmap and learning evidence.
+Set the following values in `.env.local`:
 
-In demo mode, onboarding context is retained for the active browser session so the dashboard, project view, roadmap, and visible memory reflect the project just created. A configured Supabase workspace persists the same context privately for the signed-in user.
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public browser key from Supabase |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Public Cloudflare Turnstile widget key |
+| `NEXT_PUBLIC_SITE_URL` | Local or deployed application URL |
+| `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, or `GROQ_API_KEY` | At least one server-only AI provider key |
 
-The primary product surfaces have canonical routes: `/onboarding`, `/diagnostic`, `/dashboard`, `/roadmap`, `/consensus`, `/projects`, `/challenges`, `/timeline`, `/memory`, and `/settings`. The public account, policy, support, and recovery routes are also available from the UI Blueprint.
+Never commit `.env.local`, provider keys, database passwords, or Turnstile secrets.
 
-## Local API routes
+### Database setup
 
-| Route | Purpose |
-|---|---|
-| `POST /api/decisions` | Validates a question and returns a Decision Brief |
-| `POST /api/consensus` | Fans the question out to several models and returns a reconciled consensus report (agreements, conflicts, one next step) plus the grounded brief |
-| `POST /api/onboarding` | Validates first-run project context and creates the active project |
-| `GET /api/diagnostic` | Returns the adaptive placement questions (no answer keys) |
-| `POST /api/diagnostic` | Grades answers into a skill-gap vector and generates the roadmap DAG |
-| `GET /api/challenges` | Returns a framework-current coding challenge for a competency (no grading keys) |
-| `POST /api/challenges/grade` | Grades a code submission against the challenge criteria (AI grader, heuristic fallback) and records evidence on a pass |
-| `POST /api/missions/complete` | Records a mission outcome and returns skill evidence |
-| `GET /api/projects/active` | Returns the active demo project |
-| `GET /api/roadmap` | Returns current roadmap milestones and the latest skill-gap vector |
-| `GET /api/memory` | Returns visible memory items |
+1. Create a Supabase project and enable **Email/password** authentication.
+2. Add `http://localhost:3000/auth/callback` to Supabase Auth redirect URLs.
+3. Apply the migrations in [`supabase/migrations`](supabase/migrations) in numeric order.
+4. Run [`supabase/seed.sql`](supabase/seed.sql) to load the competency and source catalog.
+5. Enable Cloudflare Turnstile in **Supabase Auth → Bot and Abuse Protection**. Store the matching Turnstile secret there, not in application code.
 
-## Supabase setup
+`GENPHD_ALLOW_DEMO_MODE` is deliberately `false` by default. It can be enabled only for local, non-production exploration without Supabase.
 
-1. Create a Supabase project and enable Email/password sign-in in **Authentication**.
-2. Add `http://localhost:3000/auth/callback` to the project's allowed redirect URLs. Add the production equivalent before deployment.
-3. Copy `.env.example` to `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-4. Run the migrations in order in the Supabase SQL editor: `0001_genphd_core.sql`, `0002_decision_brief_persistence.sql`, `0003_diagnostic_and_roadmap_dag.sql`, `0004_multi_model_consensus.sql`, `0005_coding_challenges.sql`.
-5. Run `supabase/seed.sql` to load the shared competency and source catalog.
-6. Configure a Cloudflare Turnstile widget for your local and production hostnames. Add its public site key as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
-7. In Supabase **Authentication → Bot and Abuse Protection**, enable CAPTCHA, select **Cloudflare Turnstile**, and store the matching Turnstile secret there. Do not add that private key to the app.
-8. Enable email confirmation in Supabase Auth and add `http://localhost:3000/auth/callback` plus the production callback URL to the allowed redirect URLs.
-9. Restart the app and create an account from **Sign up**. Workspace routes are gated by verified Supabase claims and cannot be opened before authentication.
+## API highlights
 
-`GENPHD_ALLOW_DEMO_MODE` is `false` by default. Set it to `true` only for local, non-production exploration without Supabase; never enable it in a deployed environment.
+| Endpoint | Responsibility |
+| --- | --- |
+| `POST /api/onboarding` | Validates and creates project context + initial roadmap. |
+| `GET/POST /api/diagnostic` | Serves adaptive questions and persists the skill-gap result. |
+| `POST /api/decisions` | Produces a validated, source-aware Decision Brief. |
+| `POST /api/consensus` | Reconciles multiple model perspectives into one decision report. |
+| `GET /api/challenges` | Returns a competency-relevant coding challenge without grading keys. |
+| `POST /api/challenges/grade` | Grades a submitted solution and records evidence on a pass. |
+| `POST /api/missions/complete` | Records a completed mission and updates learning evidence. |
+| `GET /api/memory` | Returns the visible, project-scoped memory used by the workspace. |
+| `GET /api/health` | Deployment health check. |
 
-The schema includes user-scoped Row Level Security for projects, decisions, decision options, claims, missions, reviews, skill evidence, and memory. The server always uses the signed-in user's session for workspace requests; it does not use the service role key for normal product flows.
-
-## Deploy to Render
-
-This repository includes a compact, multi-stage Docker deployment through `render.yaml`. It builds Next.js in standalone mode and ships only the traced production server and static assets—never local `node_modules`, `.next`, or `.env` files.
-
-1. Push the repository, then create a **Blueprint** from `render.yaml` in Render. The service targets the Singapore region and exposes `/api/health` as its health check.
-2. In Render, enter the prompted environment values: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `NEXT_PUBLIC_SITE_URL`, and the AI-provider keys you intend to use. Keep `GENPHD_ALLOW_DEMO_MODE=false`.
-3. Create a Cloudflare Turnstile widget in **Managed** mode. Add the Render hostname only (for example, `genphd.onrender.com`—no protocol, path, or port) and use a separate widget for local development.
-4. Put the widget's **site key** in Render as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. Put its **secret key only in Supabase** under **Authentication → Bot and Abuse Protection → CAPTCHA**; never place that secret in Render or this repository.
-5. In Supabase **Authentication → URL Configuration**, set the Site URL to the Render HTTPS URL and add `https://your-render-host/auth/callback` to Redirect URLs. Enable email confirmation and the Email/password provider.
-
-The server injects the browser-safe Supabase and Turnstile values at runtime. After changing them in Render, choose **Save and deploy**; secret values are never emitted to the browser.
-
-## AI provider boundary
-
-`lib/decision/provider.ts` isolates Decision Brief generation behind one typed provider interface. When `OPENROUTER_API_KEY` is set, GenPHD calls OpenRouter's multi-model auto router (`openrouter/auto-beta` by default) on the server. Groq is the next fallback when `GROQ_API_KEY` is set, followed by OpenAI when `OPENAI_API_KEY` is set. Each response is validated, merged with fixed source evidence, and rejected in favor of the next provider—or the deterministic Decision Brief—if malformed or unavailable. Keys are never sent to the browser.
-
-`GENPHD_DECISION_PROVIDERS=openai,openrouter,groq` controls provider priority. This default uses an available OpenAI Platform balance first, then falls back to OpenRouter and Groq if OpenAI is unavailable or returns an invalid response. `OPENROUTER_COST_QUALITY_TRADEOFF` accepts `0` (favor quality) through `10` (favor cost); the default is `6`. Set `OPENROUTER_MODEL`, `GROQ_MODEL`, or `OPENAI_MODEL` to a specific model when needed. OpenAI defaults to `gpt-5.6-sol`.
-
-## Verification
+## Verify before shipping
 
 ```powershell
-npm run lint
 npm run typecheck
+npm test
 npm run build
 ```
+
+## Deployment
+
+The repository includes [`render.yaml`](render.yaml) and a small multi-stage [`Dockerfile`](Dockerfile). Render builds the standalone Next.js server and only ships traced production assets—never local `.env`, `.next`, or `node_modules`.
+
+For a production deploy, set the Supabase public values, Turnstile site key, public site URL, and server-only provider keys in Render. Keep `GENPHD_ALLOW_DEMO_MODE=false`, then add the deployed `/auth/callback` URL to Supabase Auth redirect URLs.
+
+---
+
+Built for engineers who want a clearer next move—not another tab full of advice.
