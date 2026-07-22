@@ -585,18 +585,38 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
 
   return (
     <div className="app-shell dashboard-shell">
-      <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
-        <div className="sidebar-top">
-          <button className="brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
-            <BrandLogo className="workspace-brand-logo" priority />
-          </button>
-          <button className="icon-button sidebar-toggle" onClick={() => setIsSidebarOpen((current) => !current)} type="button" aria-label="Toggle sidebar">
-            {isSidebarOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
-          </button>
-          <button className="icon-button mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)} type="button" aria-label="Close navigation">
-            <X size={18} />
-          </button>
+      <header className="topbar workspace-topbar">
+        <button className="brand workspace-brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
+          <BrandLogo className="workspace-brand-logo" priority />
+        </button>
+        <button className="icon-button mobile-menu" onClick={() => setIsMobileMenuOpen(true)} type="button" aria-label="Open navigation">
+          <Menu size={19} />
+        </button>
+        <div className="topbar-context">
+          <span>{project.name}</span>
+          <ChevronRight size={14} aria-hidden="true" />
+          <strong>{navItems.find((item) => item.id === page)?.label ?? "Dashboard"}</strong>
         </div>
+        <div className="topbar-actions">
+          <button className="icon-button tour-button" onClick={() => setIsTourOpen(true)} type="button" aria-label="How GenPHD works">
+            <CircleHelp size={17} />
+          </button>
+          <button className="icon-button" onClick={() => setIsCommandOpen(true)} type="button" aria-label="Search workspace">
+            <Search size={17} />
+          </button>
+          <button className="icon-button notification-button" type="button" aria-label="View notifications">
+            <Bell size={17} />
+            <span className="notification-dot" aria-hidden="true" />
+          </button>
+          {hasSecureAuth ? <SignOutButton /> : <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>}
+          <button className="avatar topbar-avatar" onClick={() => router.push("/profile")} type="button" aria-label="Open profile">AP</button>
+        </div>
+      </header>
+
+      <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
+        <button className="icon-button mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)} type="button" aria-label="Close navigation">
+          <X size={18} />
+        </button>
 
         <div className="project-switcher">
           <span className="project-dot" aria-hidden="true" />
@@ -626,6 +646,16 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
             <Search aria-hidden="true" size={14} />
             <span>Search workspace</span>
           </button>
+          <button
+            aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            className="sidebar-toggle sidebar-toggle-bottom"
+            onClick={() => setIsSidebarOpen((current) => !current)}
+            title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            type="button"
+          >
+            {isSidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+            <span>{isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}</span>
+          </button>
           <button className="user-button" type="button" onClick={() => navigate("settings")}>
             <span className="avatar">AP</span>
             <span>
@@ -640,31 +670,6 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
       {isMobileMenuOpen ? <button className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setIsMobileMenuOpen(false)} type="button" /> : null}
 
       <main className="app-main">
-        <header className="topbar">
-          <button className="icon-button mobile-menu" onClick={() => setIsMobileMenuOpen(true)} type="button" aria-label="Open navigation">
-            <Menu size={19} />
-          </button>
-          <div className="topbar-context">
-            <span>{project.name}</span>
-            <ChevronRight size={14} aria-hidden="true" />
-            <strong>{navItems.find((item) => item.id === page)?.label ?? "Dashboard"}</strong>
-          </div>
-          <div className="topbar-actions">
-            <button className="icon-button tour-button" onClick={() => setIsTourOpen(true)} type="button" aria-label="How GenPHD works">
-              <CircleHelp size={17} />
-            </button>
-            <button className="icon-button" onClick={() => setIsCommandOpen(true)} type="button" aria-label="Search workspace">
-              <Search size={17} />
-            </button>
-            <button className="icon-button notification-button" type="button" aria-label="View notifications">
-              <Bell size={17} />
-              <span className="notification-dot" aria-hidden="true" />
-            </button>
-            {hasSecureAuth ? <SignOutButton /> : <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>}
-            <button className="avatar topbar-avatar" onClick={() => router.push("/profile")} type="button" aria-label="Open profile">AP</button>
-          </div>
-        </header>
-
         <div className="page-container">{appContent()}</div>
       </main>
 

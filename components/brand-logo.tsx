@@ -13,7 +13,7 @@ export function BrandLogo({ className, priority = false }: BrandLogoProps) {
       height={48}
       priority={priority}
       src="/brand/genphd-logo.png"
-      style={{ display: "block", height: "auto", objectFit: "contain", width: "128px" }}
+      style={{ display: "block", height: "auto", objectFit: "contain", width: "var(--brand-logo-width, 128px)" }}
       width={256}
     />
   );

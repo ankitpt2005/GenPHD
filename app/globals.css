@@ -1984,17 +1984,37 @@ kbd {
 /* Dashboard reference layout: compact navigation, one clear action, and a quiet evidence rail. */
 .dashboard-shell {
   --sidebar-width: 168px;
+  --workspace-topbar-height: 44px;
   background: #090e14;
 }
 
 .dashboard-shell .sidebar {
+  inset: var(--workspace-topbar-height) auto 0 0;
+  height: auto;
   border-color: #1e2731;
   background: #0b1016;
 }
 
-.dashboard-shell .sidebar-top {
-  height: 36px;
-  padding: 0 9px 0 13px;
+.dashboard-shell .workspace-topbar {
+  position: fixed;
+  z-index: 30;
+  inset: 0 0 auto;
+  justify-content: flex-start;
+  background: #0b1016;
+}
+
+.dashboard-shell .workspace-brand {
+  --brand-logo-width: 128px;
+  flex: 0 0 auto;
+  margin-right: 18px;
+}
+
+.dashboard-shell .workspace-topbar .topbar-context {
+  margin-right: auto;
+}
+
+.dashboard-shell .mobile-menu-close {
+  display: none;
 }
 
 .dashboard-shell .brand {
@@ -2074,6 +2094,41 @@ kbd {
   border-color: #1e2731;
 }
 
+.dashboard-shell .sidebar-toggle-bottom {
+  display: flex;
+  width: 100%;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #8f9aa8;
+  font-size: 10px;
+  text-align: left;
+}
+
+.dashboard-shell .sidebar-toggle-bottom:hover {
+  border-color: #26313c;
+  background: #151b22;
+  color: var(--text-primary);
+}
+
+.dashboard-shell .sidebar-toggle-bottom svg {
+  flex: 0 0 auto;
+}
+
+.dashboard-shell .sidebar.is-collapsed .sidebar-toggle-bottom {
+  display: inline-flex;
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.dashboard-shell .sidebar.is-collapsed .sidebar-toggle-bottom span {
+  display: none;
+}
+
 .dashboard-shell .shortcut-button {
   min-height: 27px;
   gap: 7px;
@@ -2118,11 +2173,12 @@ kbd {
 }
 
 .dashboard-shell .app-main {
+  padding-top: var(--workspace-topbar-height);
   background: #090e14;
 }
 
 .dashboard-shell .topbar {
-  height: 36px;
+  height: var(--workspace-topbar-height);
   border-color: #1e2731;
   padding: 0 20px;
 }
@@ -2363,11 +2419,7 @@ kbd {
 @media (min-width: 1280px) {
   .dashboard-shell {
     --sidebar-width: 184px;
-  }
-
-  .dashboard-shell .sidebar-top,
-  .dashboard-shell .topbar {
-    height: 42px;
+    --workspace-topbar-height: 50px;
   }
 
   .dashboard-shell .brand-mark {
@@ -2510,6 +2562,17 @@ kbd {
 }
 
 @media (max-width: 1023px) {
+  .dashboard-shell .workspace-brand {
+    --brand-logo-width: 96px;
+    margin-right: 10px;
+  }
+
+  .dashboard-shell .mobile-menu-close {
+    display: inline-grid;
+    align-self: flex-end;
+    margin: 8px 8px 0;
+  }
+
   .sidebar {
     width: 232px;
     transform: translateX(-100%);
@@ -2603,6 +2666,11 @@ kbd {
 }
 
 @media (max-width: 680px) {
+  .dashboard-shell .workspace-brand {
+    --brand-logo-width: 82px;
+    margin-right: 5px;
+  }
+
   .topbar {
     padding: 0 16px;
   }
