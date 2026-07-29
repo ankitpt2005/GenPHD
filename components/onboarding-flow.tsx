@@ -115,7 +115,7 @@ export function OnboardingFlow() {
     window.sessionStorage.removeItem("genphd-roadmap");
     window.sessionStorage.removeItem("genphd-gap-vector");
     window.sessionStorage.setItem("genphd-active-project", JSON.stringify(savedWorkspace.data.project));
-    router.push("/diagnostic");
+    router.push("/dashboard");
   }
 
   const [title, description] = questions[step];
