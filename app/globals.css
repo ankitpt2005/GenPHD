@@ -3908,35 +3908,38 @@ kbd {
   right: -18%;
   width: 80%;
   aspect-ratio: 1;
-  border: 1px solid #5a5a5a;
+  background: #efefea !important;
   border-radius: 50%;
+  opacity: 0.85;
 }
 
 .art-1::after {
   top: 29%;
   right: 12%;
-  width: 28%;
+  width: 32%;
   aspect-ratio: 1;
-  border: 1px solid #767676;
+  background: #202020 !important;
+  border: 4px solid #efefea !important;
   border-radius: 50%;
 }
 
 .art-2 {
-  background: #efefea;
+  background: #202020 !important;
 }
 
 .art-2 span {
-  color: #151515;
+  color: #efefea !important;
 }
 
 .art-2::before {
   top: 18%;
   left: 18%;
   width: 64%;
-  height: 1px;
-  background: #272727;
-  box-shadow: 0 38px #272727, 0 76px #272727, 0 114px #272727;
+  height: 10px !important;
+  background: #efefea !important;
+  box-shadow: 0 32px #efefea, 0 64px #efefea, 0 96px #efefea !important;
   transform: rotate(-35deg);
+  opacity: 0.9;
 }
 
 .art-3::before {
@@ -3949,7 +3952,7 @@ kbd {
   bottom: 0;
   width: 54%;
   aspect-ratio: 1;
-  background: #efefea;
+  background: #efefea !important;
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
 }
 
@@ -4419,7 +4422,6 @@ kbd {
     padding: 22px 20px;
   }
 }
-
 /* --- NEW MARKETING VISUAL OVERHAUL CSS --- */
 
 /* Hero Section (Split Layout) */
@@ -5021,3 +5023,768 @@ kbd {
   background: var(--background);
 }
 .roadmap-node.is-capstone h2 { margin-top: 1px; }
+
+/* --- AESTHETIC OVERRIDES --- */
+.marketing-shell {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Glassmorphic header */
+.public-header {
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Ultra-stark hero */
+.editorial-hero {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0) 60%);
+}
+
+.hero-copy h1, .editorial-page-heading h1, .contact-callout h1, .statement-title {
+  color: #ffffff !important;
+  text-shadow: none !important;
+  letter-spacing: -0.06em !important;
+  line-height: 1.05 !important;
+}
+#statement-title, #principles-title, #cta-title {
+  color: #ffffff !important;
+  letter-spacing: -0.05em !important;
+}
+
+.hero-description, .marketing-statement p, .hero-brief > p, .principles-aside-note {
+  color: #a0a0a0 !important;
+}
+
+.eyebrow {
+  color: #777777 !important;
+  letter-spacing: 0.15em !important;
+}
+
+/* Redesign the hero composition into a sleek artifact */
+.hero-composition {
+  background: rgba(18, 18, 18, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.hero-brief {
+  background: rgba(22, 22, 26, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #ffffff !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.hero-brief h2 {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+.hero-brief span {
+  color: #e4e4e7 !important;
+}
+
+.brief-rule {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.hero-ledger {
+  background: rgba(12, 12, 12, 0.9) !important;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.hero-ledger span {
+  color: #a1a1aa !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.hero-composition::before {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: transparent !important;
+}
+.hero-composition::after {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.hero-orbit {
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+}
+.hero-orbit-two {
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* Animations */
+.animate-fade-up {
+  animation: fadeUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons */
+.button-primary {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.button-primary:hover {
+  background: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+}
+
+.button-secondary {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.button-secondary:hover {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Text Action */
+.text-action {
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+.text-action:hover {
+  opacity: 0.7;
+  transform: translateX(4px);
+}
+
+/* Statement field with white ambient glow */
+.marketing-statement {
+  background: #000000 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.statement-field {
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.09) 0%, rgba(22, 22, 22, 0.9) 70%, rgba(10, 10, 10, 0.98) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 35px rgba(255, 255, 255, 0.05) !important;
+}
+.statement-field::before { border: 1px solid rgba(255, 255, 255, 0.22) !important; }
+.statement-field::after { border: 1px solid rgba(255, 255, 255, 0.3) !important; }
+.statement-field-line { background: rgba(255, 255, 255, 0.2) !important; }
+.statement-field-dot { background: #ffffff !important; box-shadow: 0 0 16px rgba(255, 255, 255, 0.9); }
+.statement-field strong { color: rgba(255, 255, 255, 0.35) !important; text-shadow: 0 0 50px rgba(255, 255, 255, 0.5); }
+
+/* Principles List */
+.principles-section, .marketing-cta, .editorial-page-heading {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.principle-list li {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: background 0.4s ease;
+}
+.principle-list li:hover {
+  background: rgba(255,255,255,0.02);
+}
+.principle-list li span {
+  color: #555555 !important;
+}
+.principle-list li h3 {
+  color: #ffffff !important;
+}
+
+/* Marketing CTA */
+.cta-proof span {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #cccccc !important;
+}
+
+/* Footer */
+.public-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #000000 !important;
+}
+.footer-intro h2 {
+  color: #ffffff !important;
+}
+.footer-site-link, .footer-notion-link {
+  color: #888888 !important;
+  transition: color 0.3s ease;
+}
+.footer-site-link:hover, .footer-notion-link:hover {
+  color: #ffffff !important;
+}
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #555555 !important;
+}
+/* --- STRUCTURAL AESTHETICS --- */
+.relative {
+  position: relative;
+}
+
+.grain-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+}
+
+.tech-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
+}
+
+.watermark-typography {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  font-size: 20vw;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.015);
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.05em;
+  line-height: 0.8;
+  white-space: nowrap;
+}
+
+.marketing-statement, .principles-section {
+  z-index: 10; /* Ensure content stays above the watermark */
+}
+.marketing-statement > div, .principles-section > div, .principles-section > ol {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-svg-artifact {
+  position: absolute;
+  top: 10%;
+  right: -5%;
+  width: 90%;
+  height: 90%;
+  z-index: 1;
+  opacity: 0.6;
+}
+
+.hero-svg-artifact svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+}
+
+.artifact-network path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: dash 4s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.hero-composition {
+  overflow: hidden; /* Keep the artifact inside */
+}
+
+/* Adjust layout so content sits above overlays */
+.hero-copy {
+  position: relative;
+  z-index: 10;
+}
+.public-header {
+  position: relative;
+  z-index: 100;
+}
+
+/* Make sure the hero circle isn't blocking the new SVG artifact */
+.hero-composition::before {
+  z-index: 0;
+}
+/* --- PHASE 3: FINAL ARCHITECTURAL POLISH --- */
+
+/* Viewport Framing */
+.viewport-frame-border {
+  position: fixed;
+  inset: 16px;
+  z-index: 999;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.viewport-frame-lines {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 25% 100%;
+}
+
+/* Make sure header respects the frame */
+.public-header {
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+  margin-top: 16px;
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* --- CONTACT PAGE WHITE SHADE & BORDER STYLING --- */
+.contact-callout {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+.contact-callout h1 {
+  color: #ffffff !important;
+}
+
+.contact-callout p,
+.contact-callout .contact-note {
+  color: #d4d4d8 !important;
+}
+
+.block-one {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(12px);
+}
+
+.block-two {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  backdrop-filter: blur(12px);
+}
+
+.block-three {
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 70%) !important;
+}
+
+.contact-aside {
+  border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.contact-aside p,
+.contact-aside-index {
+  color: #ffffff !important;
+}
+
+/* --- HOW IT WORKS / SERVICES CARD STYLING --- */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0 !important;
+  border-top: 1px solid #d4d4d8 !important;
+  border-left: 1px solid #d4d4d8 !important;
+  background: transparent !important;
+}
+
+.service-card {
+  min-height: 330px;
+  padding: 28px;
+  border-radius: 0 !important;
+  border-right: 1px solid #d4d4d8 !important;
+  border-bottom: 1px solid #d4d4d8 !important;
+  border-top: none !important;
+  border-left: none !important;
+  background: #f4f4f5 !important;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease !important;
+  position: relative;
+  z-index: 1;
+  will-change: transform;
+}
+
+.service-card:hover {
+  background: #ffffff !important;
+  transform: translateY(-8px) !important;
+  z-index: 10;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+.service-card h2 {
+  color: #09090b !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  margin-top: 78px !important;
+}
+
+.service-card p {
+  color: #3f3f46 !important;
+  font-size: 14px !important;
+  line-height: 1.65 !important;
+}
+
+.service-card-top span,
+.service-card-top svg {
+  color: #52525b !important;
+}
+
+.field-note {
+  background: rgba(15, 15, 15, 0.4) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.field-note:hover {
+  background: rgba(25, 25, 25, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-4px);
+}
+.field-note h2 { color: #ffffff !important; }
+.field-note p { color: #a0a0a0 !important; }
+
+.field-note-art {
+  background: rgba(0, 0, 0, 0.6) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.field-note-art span {
+  color: #ffffff !important;
+}
+
+/* Enhance existing hover states */
+.button-primary:hover {
+  background: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 0 30px rgba(255,255,255,0.4);
+}
+.text-action:hover {
+  opacity: 1;
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+/* Custom Cursor CSS */
+body {
+  cursor: none !important; /* Hide default cursor */
+}
+
+a, button, input {
+  cursor: none !important;
+}
+
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+/* --- PHASE 4: PURE VISUAL ANATOMY (The Sculptor's Approach) --- */
+
+/* 1. Volumetric Lighting */
+.marketing-shell::before {
+  content: '';
+  position: fixed;
+  top: -20vh;
+  left: -20vw;
+  width: 140vw;
+  height: 140vh;
+  background: 
+    radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.04), transparent 35%),
+    radial-gradient(circle at 85% 90%, rgba(255, 255, 255, 0.02), transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 2. Remove Custom Cursor Overrides */
+body {
+  cursor: auto !important;
+}
+a, button, input {
+  cursor: pointer !important;
+}
+.custom-cursor {
+  display: none !important;
+}
+
+/* 3. Material Etching for Glass Cards */
+.service-card, .field-note, .contact-callout {
+  /* Replace the flat border with a precise top-edge highlight to simulate physical glass */
+  border: none !important;
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.service-card:hover, .field-note:hover {
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 20px 50px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* 4. Typographic Anatomy & Contrast */
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff !important;
+  letter-spacing: -0.02em; /* Tighter tracking for headings */
+}
+
+p, .hero-description {
+  color: #a1a1aa !important; /* Colder silver for receding body text */
+}
+
+.eyebrow {
+  color: rgba(255, 255, 255, 0.4) !important;
+  letter-spacing: 0.1em !important; /* Wider tracking for accents */
+  text-transform: uppercase;
+}
+
+.hero-index {
+  color: #71717a !important;
+}
+
+.hero-vertical-label {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.button-primary {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.button-secondary {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- STATEMENT FIELD ENHANCEMENTS --- */
+.statement-field strong {
+  opacity: 0.15; /* Subdue giant background G letter so metrics are crystal clear */
+}
+
+.statement-field-metrics {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 38px 20px 32px;
+  pointer-events: none;
+}
+
+.statement-field-metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statement-field-metrics span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #71717a;
+}
+
+.statement-field-metrics strong {
+  position: static !important;
+  transform: none !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  letter-spacing: normal !important;
+  line-height: 1.2 !important;
+}
+
+.statement-field-metrics small {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
+.statement-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.statement-proof span {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #cccccc !important;
+  font-size: 12px;
+}
+
+/* --- ABOUT PAGE HEADING WITH GRADIENT OPACITY (60% Green -> 30% Blue -> 10% Purple) --- */
+.about-page-heading {
+  position: relative;
+  overflow: hidden;
+  padding: 120px 0 110px;
+  min-height: 540px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.about-heading-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.about-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center right;
+  opacity: 0.7;
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.15) 28%, rgba(0, 0, 0, 0.45) 28%, rgba(0, 0, 0, 0.45) 58%, rgba(0, 0, 0, 0.85) 58%, rgba(0, 0, 0, 0.85) 100%);
+  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.15) 28%, rgba(0, 0, 0, 0.45) 28%, rgba(0, 0, 0, 0.45) 58%, rgba(0, 0, 0, 0.85) 58%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+.about-bg-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, #000000 0%, rgba(0, 0, 0, 0.88) 28%, rgba(0, 0, 0, 0.65) 58%, rgba(0, 0, 0, 0.35) 100%);
+  pointer-events: none;
+}
+
+.about-heading-content {
+  position: relative;
+  z-index: 10;
+  max-width: 820px;
+}
+
+.about-heading-content h1 {
+  font-size: clamp(44px, 6.5vw, 90px) !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.05em !important;
+  text-shadow: none !important;
+  margin: 12px 0 20px !important;
+}
+
+.about-heading-content p:not(.eyebrow) {
+  max-width: 580px;
+  font-size: 17px !important;
+  color: #d4d4d8 !important;
+  opacity: 1 !important;
+  line-height: 1.65 !important;
+  text-shadow: none !important;
+}
+
+.about-proof-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.about-proof-pills span {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  color: #ffffff !important;
+  font-size: 12.5px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+/* --- MARKETING CTA CARD STYLING --- */
+.marketing-cta {
+  width: min(100% - 48px, 1000px);
+  margin: 60px auto 80px;
+  padding: 80px 40px !important;
+  background: rgba(18, 18, 18, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.marketing-cta #cta-title {
+  font-size: clamp(34px, 5vw, 56px) !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+  margin: 12px 0 16px !important;
+}
+
+.marketing-cta > p:not(.eyebrow) {
+  max-width: 620px !important;
+  margin: 0 auto 28px !important;
+  color: #a1a1aa !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}
+
+.cta-proof {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px !important;
+  margin: 28px 0 36px !important;
+}
+
+.cta-proof span {
+  padding: 6px 16px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: #d4d4d8 !important;
+  font-size: 13px !important;
+  letter-spacing: normal !important;
+}
+
+.marketing-cta .button-primary {
+  padding: 14px 36px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: none !important;
+  transition: all 0.25s ease !important;
+}
+
+.marketing-cta .button-primary:hover {
+  transform: translateY(-2px);
+  background: #f4f4f5 !important;
+  box-shadow: none !important;
+}

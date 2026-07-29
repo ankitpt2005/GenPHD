@@ -101,7 +101,40 @@ export function SignInForm({ mode = "login", redirectPath = "/dashboard", turnst
         <Mail aria-hidden="true" size={19} />
         <div>
           <strong>Confirm your email</strong>
-          <p>We sent a confirmation link to {email.trim()}. Open it in this browser to activate your private workspace and continue to the dashboard.</p>
+          <p>We sent a confirmation link to <strong>{email.trim()}</strong>. Open it to activate your private workspace.</p>
+          <p style={{ marginTop: "10px", fontSize: "12.5px", opacity: 0.85 }}>
+            <em>Didn&apos;t receive the email?</em> Check your <strong>Spam / Junk folder</strong> (university email filters like <code>@dseu.ac.in</code> often block automated system emails).
+          </p>
+          <div style={{ marginTop: "14px", display: "flex", gap: "12px", alignItems: "center" }}>
+            <button
+              className="button button-secondary"
+              onClick={async () => {
+                const supabase = createSupabaseBrowserClient();
+                const callbackUrl = new URL("/auth/callback", window.location.origin);
+                callbackUrl.searchParams.set("next", redirectPath);
+                await supabase.auth.resend({
+                  type: "signup",
+                  email: email.trim(),
+                  options: { emailRedirectTo: callbackUrl.toString() },
+                });
+                alert("A new confirmation email was sent! Please check your inbox and spam folder.");
+              }}
+              style={{ fontSize: "12px", padding: "6px 14px" }}
+              type="button"
+            >
+              Resend email
+            </button>
+            <button
+              className="text-action"
+              onClick={() => {
+                router.push(`/login?email=${encodeURIComponent(email.trim())}`);
+              }}
+              style={{ fontSize: "12.5px", background: "none", border: "none", cursor: "pointer" }}
+              type="button"
+            >
+              Already confirmed? Sign in
+            </button>
+          </div>
         </div>
       </div>
     );

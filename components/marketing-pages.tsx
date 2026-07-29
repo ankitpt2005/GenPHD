@@ -161,6 +161,11 @@ export function MarketingLandingPage() {
           <span className="statement-field-index">01</span>
           <span className="statement-field-dot" />
           <strong>G</strong>
+          <div className="statement-field-metrics">
+            <div><span>01</span><strong>Consensus</strong><small>3 Models Reconciled</small></div>
+            <div><span>02</span><strong>Evidence</strong><small>Traceable Sources</small></div>
+            <div><span>03</span><strong>Action</strong><small>Bounded Mission</small></div>
+          </div>
           <span className="statement-field-line line-one" />
           <span className="statement-field-line line-two" />
         </div>
@@ -168,6 +173,9 @@ export function MarketingLandingPage() {
           <p className="eyebrow">The GenPHD approach</p>
           <h2 id="statement-title">Think clearly. Build deliberately. Remember what matters.</h2>
           <p>GenPHD is a private decision workspace for the moments when an AI project needs a clearer path—not more noise.</p>
+          <div className="statement-proof" aria-label="GenPHD core capabilities">
+            <span>Private workspace</span><span>Evidence grounded</span><span>Action focused</span>
+          </div>
           <Link className="text-action" href="/about">Meet the approach <ArrowUpRight size={16} /></Link>
         </div>
       </section>
@@ -206,10 +214,27 @@ export function AboutPage() {
   return (
     <MarketingPage className="marketing-about">
       <PublicHeader />
-      <section className="editorial-page-heading" aria-labelledby="about-title">
-        <p className="eyebrow">About GenPHD</p>
-        <h1 id="about-title">AI engineering deserves a clearer working memory.</h1>
-        <p>GenPHD was shaped around a simple observation: when project context is scattered, even good advice becomes difficult to use.</p>
+      <section className="editorial-page-heading about-page-heading" aria-labelledby="about-title">
+        <div className="about-heading-bg" aria-hidden="true">
+          <img
+            src="/about-user-bg.png"
+            alt=""
+            className="about-bg-img"
+            loading="eager"
+          />
+          <div className="about-bg-gradient-overlay" />
+        </div>
+
+        <div className="about-heading-content">
+          <p className="eyebrow">About GenPHD</p>
+          <h1 id="about-title">AI engineering deserves a clearer working memory.</h1>
+          <p>GenPHD was shaped around a simple observation: when project context is scattered, even good advice becomes difficult to use.</p>
+          <div className="about-proof-pills">
+            <span>Private workspace</span>
+            <span>Traceable context</span>
+            <span>Action scoped</span>
+          </div>
+        </div>
       </section>
       <section className="about-manifesto" aria-label="Our working principles">
         <div className="manifesto-graphic" aria-hidden="true"><span>01</span><span>G</span><span>∞</span></div>

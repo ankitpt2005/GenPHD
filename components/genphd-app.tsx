@@ -14,7 +14,6 @@ import {
   ChevronRight,
   CircleHelp,
   Clock3,
-  Code2,
   Command,
   ExternalLink,
   FileCheck2,
@@ -44,8 +43,6 @@ import { SignOutButton } from "./auth/sign-out-button";
 import { BrandLogo } from "./brand-logo";
 import { z } from "zod";
 import { consensusReportSchema, type ConsensusReport } from "../lib/consensus/types";
-import { diagnosticResultSchema } from "../lib/diagnostic/baseline";
-import { personalizeRoadmap } from "../lib/roadmap/personalize";
 import {
   activeProjectSchema,
   decisionStateSchema,
@@ -55,7 +52,7 @@ import {
   type CompetencyScore,
   type RoadmapMilestone,
 } from "../lib/workspace/contracts";
-import { COMPETENCIES, normalizeCompetencyId } from "../lib/competencies";
+import { COMPETENCIES } from "../lib/competencies";
 
 export type WorkspacePage =
   | "dashboard"
@@ -286,25 +283,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
     router.push(pagePaths[nextPage]);
   }, [router]);
 
-  // The coding challenge targets the roadmap's current focus (or the weakest competency).
-  const challengeCompetency = useMemo(() => {
-    const now = roadmap.find((milestone) => milestone.state === "now");
-    if (now) return normalizeCompetencyId(now.competency);
-    const weakest = [...gapVector].sort((a, b) => a.score - b.score)[0];
-    return weakest?.competencyId ?? "retrieval";
-  }, [roadmap, gapVector]);
 
-  const handleChallengePass = useCallback((competencyId: string, score: number) => {
-    setGapVector((previous) => {
-      const next = previous.map((entry) =>
-        entry.competencyId === competencyId
-          ? { ...entry, score: Math.max(entry.score, score), state: (score >= 76 ? "validated" : score >= 40 ? "practicing" : entry.state) as CompetencyScore["state"] }
-          : entry,
-      );
-      window.sessionStorage.setItem("genphd-gap-vector", JSON.stringify(next));
-      return next;
-    });
-  }, []);
 
   useEffect(() => {
     const tourTimer = window.setTimeout(() => {
@@ -558,7 +537,16 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
       case "projects":
         return <Projects brief={activeBrief} onDecision={() => setIsComposerOpen(true)} project={project} roadmap={roadmap} />;
       case "challenges":
-        return <Challenges key={challengeCompetency} competencyId={challengeCompetency} onPass={handleChallengePass} onViewRoadmap={() => navigate("roadmap")} />;
+        return (
+          <Challenges
+            brief={activeBrief}
+            isCompletingMission={isCompletingMission}
+            missionError={missionError}
+            missionComplete={missionComplete}
+            onComplete={completeMission}
+            onViewRoadmap={() => navigate("roadmap")}
+          />
+        );
       case "timeline":
         return <Timeline missionComplete={missionComplete} projectName={project.name} />;
       case "memory":
@@ -586,19 +574,6 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
 
   return (
     <div className="app-shell dashboard-shell">
-<<<<<<< HEAD
-      <header className="topbar workspace-topbar">
-        <button className="brand workspace-brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
-          <BrandLogo className="workspace-brand-logo" priority />
-        </button>
-        <button className="icon-button mobile-menu" onClick={() => setIsMobileMenuOpen(true)} type="button" aria-label="Open navigation">
-          <Menu size={19} />
-        </button>
-        <div className="topbar-context">
-          <span>{project.name}</span>
-          <ChevronRight size={14} aria-hidden="true" />
-          <strong>{navItems.find((item) => item.id === page)?.label ?? "Dashboard"}</strong>
-=======
       <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
         <div className="sidebar-top">
           <button className="brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
@@ -610,28 +585,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
           <button className="icon-button mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)} type="button" aria-label="Close navigation">
             <X size={18} />
           </button>
->>>>>>> 06f8453 (fix(app): remove coding challenge section and update build mission navigation)
         </div>
-        <div className="topbar-actions">
-          <button className="icon-button tour-button" onClick={() => setIsTourOpen(true)} type="button" aria-label="How GenPHD works">
-            <CircleHelp size={17} />
-          </button>
-          <button className="icon-button" onClick={() => setIsCommandOpen(true)} type="button" aria-label="Search workspace">
-            <Search size={17} />
-          </button>
-          <button className="icon-button notification-button" type="button" aria-label="View notifications">
-            <Bell size={17} />
-            <span className="notification-dot" aria-hidden="true" />
-          </button>
-          {hasSecureAuth ? <SignOutButton /> : <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>}
-          <button className="avatar topbar-avatar" onClick={() => router.push("/profile")} type="button" aria-label="Open profile">AP</button>
-        </div>
-      </header>
-
-      <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
-        <button className="icon-button mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)} type="button" aria-label="Close navigation">
-          <X size={18} />
-        </button>
 
         <div className="project-switcher">
           <span className="project-dot" aria-hidden="true" />
@@ -685,8 +639,6 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
       {isMobileMenuOpen ? <button className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setIsMobileMenuOpen(false)} type="button" /> : null}
 
       <main className="app-main">
-<<<<<<< HEAD
-=======
         <header className="topbar">
           <button className="icon-button mobile-menu" onClick={() => setIsMobileMenuOpen(true)} type="button" aria-label="Open navigation">
             <Menu size={19} />
@@ -712,7 +664,6 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
           </div>
         </header>
 
->>>>>>> 06f8453 (fix(app): remove coding challenge section and update build mission navigation)
         <div className="page-container">{appContent()}</div>
       </main>
 
@@ -1005,16 +956,6 @@ function Projects({ brief, onDecision, project, roadmap }: { brief: DecisionBrie
   );
 }
 
-<<<<<<< HEAD
-function Challenges({ competencyId, onPass, onViewRoadmap }: { competencyId: string; onPass: (competencyId: string, score: number) => void; onViewRoadmap: () => void }) {
-  const [challenge, setChallenge] = useState<PublicChallenge | null>(null);
-  const [code, setCode] = useState("");
-  const [phase, setPhase] = useState<"loading" | "ready" | "grading" | "graded" | "error">("loading");
-  const [grade, setGrade] = useState<ChallengeGrade | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
 function Challenges({ brief, isCompletingMission, missionError, missionComplete, onComplete, onViewRoadmap }: { brief: DecisionBrief; isCompletingMission: boolean; missionError: string | null; missionComplete: boolean; onComplete: () => void; onViewRoadmap: () => void }) {
   return (
     <section className="reading-column">
@@ -1028,9 +969,6 @@ function Challenges({ brief, isCompletingMission, missionError, missionComplete,
         <div className="mission-actions">{missionComplete ? <button className="button button-primary" onClick={onViewRoadmap} type="button">View updated roadmap <ArrowRight size={16} /></button> : <button className="button button-primary" disabled={isCompletingMission} onClick={onComplete} type="button">{isCompletingMission ? "Saving outcome…" : "Complete mission"} <Check size={16} /></button>}</div>
         {missionError ? <p className="inline-error" role="alert">{missionError}</p> : null}
       </article>
-    </section>
-  );
-}
     </section>
   );
 }
