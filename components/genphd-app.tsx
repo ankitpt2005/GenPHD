@@ -43,6 +43,9 @@ import { getBrowserPublicRuntimeConfig } from "../lib/runtime/public-config.clie
 import { SignOutButton } from "./auth/sign-out-button";
 import { BrandLogo } from "./brand-logo";
 import { z } from "zod";
+import { consensusReportSchema, type ConsensusReport } from "../lib/consensus/types";
+import { diagnosticResultSchema } from "../lib/diagnostic/baseline";
+import { personalizeRoadmap } from "../lib/roadmap/personalize";
 import {
   activeProjectSchema,
   decisionStateSchema,
@@ -52,8 +55,6 @@ import {
   type CompetencyScore,
   type RoadmapMilestone,
 } from "../lib/workspace/contracts";
-import { consensusReportSchema, type ConsensusReport } from "../lib/consensus/types";
-import { challengeGradeSchema, publicChallengeSchema, type ChallengeGrade, type PublicChallenge } from "../lib/challenges/types";
 import { COMPETENCIES, normalizeCompetencyId } from "../lib/competencies";
 
 export type WorkspacePage =
@@ -73,12 +74,12 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "roadmap", label: "My roadmap", icon: Target },
+  { id: "dashboard", label: "Today", icon: LayoutDashboard },
   { id: "consensus", label: "Decisions", icon: BrainCircuit },
-  { id: "projects", label: "My project", icon: FolderKanban },
-  { id: "challenges", label: "Coding challenges", icon: ListChecks },
+  { id: "challenges", label: "Build missions", icon: ListChecks },
+  { id: "roadmap", label: "My roadmap", icon: Target },
   { id: "timeline", label: "Progress", icon: History },
+  { id: "projects", label: "My project", icon: FolderKanban },
   { id: "memory", label: "Learning memory", icon: BookOpen },
   { id: "settings", label: "Settings", icon: Settings },
 ];
@@ -202,7 +203,7 @@ function Confidence({ value = "Medium confidence" }: { value?: string }) {
 const tourSteps = [
   {
     title: "Start with one useful action",
-    description: "Dashboard is your home base. It gives you one practical task for today, not a wall of metrics.",
+    description: "Today is your home base. It gives you one practical task for today, not a wall of metrics.",
     detail: "Open a build mission when you are ready to work.",
   },
   {
@@ -585,6 +586,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
 
   return (
     <div className="app-shell dashboard-shell">
+<<<<<<< HEAD
       <header className="topbar workspace-topbar">
         <button className="brand workspace-brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
           <BrandLogo className="workspace-brand-logo" priority />
@@ -596,6 +598,19 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
           <span>{project.name}</span>
           <ChevronRight size={14} aria-hidden="true" />
           <strong>{navItems.find((item) => item.id === page)?.label ?? "Dashboard"}</strong>
+=======
+      <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
+        <div className="sidebar-top">
+          <button className="brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
+            <BrandLogo priority />
+          </button>
+          <button className="icon-button sidebar-toggle" onClick={() => setIsSidebarOpen((current) => !current)} type="button" aria-label="Toggle sidebar">
+            {isSidebarOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
+          </button>
+          <button className="icon-button mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)} type="button" aria-label="Close navigation">
+            <X size={18} />
+          </button>
+>>>>>>> 06f8453 (fix(app): remove coding challenge section and update build mission navigation)
         </div>
         <div className="topbar-actions">
           <button className="icon-button tour-button" onClick={() => setIsTourOpen(true)} type="button" aria-label="How GenPHD works">
@@ -670,6 +685,34 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
       {isMobileMenuOpen ? <button className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setIsMobileMenuOpen(false)} type="button" /> : null}
 
       <main className="app-main">
+<<<<<<< HEAD
+=======
+        <header className="topbar">
+          <button className="icon-button mobile-menu" onClick={() => setIsMobileMenuOpen(true)} type="button" aria-label="Open navigation">
+            <Menu size={19} />
+          </button>
+          <div className="topbar-context">
+            <span>{project.name}</span>
+            <ChevronRight size={14} aria-hidden="true" />
+            <strong>{navItems.find((item) => item.id === page)?.label ?? "Today"}</strong>
+          </div>
+          <div className="topbar-actions">
+            <button className="icon-button tour-button" onClick={() => setIsTourOpen(true)} type="button" aria-label="How GenPHD works">
+              <CircleHelp size={17} />
+            </button>
+            <button className="icon-button" onClick={() => setIsCommandOpen(true)} type="button" aria-label="Search workspace">
+              <Search size={17} />
+            </button>
+            <button className="icon-button notification-button" onClick={() => router.push("/notifications")} type="button" aria-label="View notifications">
+              <Bell size={17} />
+              <span className="notification-dot" aria-hidden="true" />
+            </button>
+            {hasSecureAuth ? <SignOutButton /> : <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>}
+            <button className="avatar topbar-avatar" onClick={() => router.push("/profile")} type="button" aria-label="Open profile">G</button>
+          </div>
+        </header>
+
+>>>>>>> 06f8453 (fix(app): remove coding challenge section and update build mission navigation)
         <div className="page-container">{appContent()}</div>
       </main>
 
@@ -962,6 +1005,7 @@ function Projects({ brief, onDecision, project, roadmap }: { brief: DecisionBrie
   );
 }
 
+<<<<<<< HEAD
 function Challenges({ competencyId, onPass, onViewRoadmap }: { competencyId: string; onPass: (competencyId: string, score: number) => void; onViewRoadmap: () => void }) {
   const [challenge, setChallenge] = useState<PublicChallenge | null>(null);
   const [code, setCode] = useState("");
@@ -971,124 +1015,22 @@ function Challenges({ competencyId, onPass, onViewRoadmap }: { competencyId: str
 
   useEffect(() => {
     let active = true;
-    fetch(`/api/challenges?competency=${encodeURIComponent(competencyId)}`, { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("load"))))
-      .then((data: { challenge?: unknown }) => {
-        if (!active) return;
-        const parsed = data.challenge ? publicChallengeSchema.safeParse(data.challenge) : null;
-        if (parsed?.success) {
-          setChallenge(parsed.data);
-          setCode(parsed.data.starterCode);
-          setPhase("ready");
-        } else {
-          setPhase("error");
-        }
-      })
-      .catch(() => active && setPhase("error"));
-    return () => {
-      active = false;
-    };
-  }, [competencyId]);
-
-  async function submit() {
-    if (!challenge) return;
-    setPhase("grading");
-    setError(null);
-    const response = await fetch("/api/challenges/grade", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ challengeId: challenge.id, code }),
-    }).catch(() => null);
-
-    const payload: unknown = response ? await response.json().catch(() => null) : null;
-    if (!response?.ok) {
-      setError("Grading failed. Please retry.");
-      setPhase("ready");
-      return;
-    }
-    const parsed = z.object({ grade: challengeGradeSchema, competencyId: z.string() }).safeParse(payload);
-    if (!parsed.success) {
-      setError("Could not read the grade. Please retry.");
-      setPhase("ready");
-      return;
-    }
-    setGrade(parsed.data.grade);
-    setPhase("graded");
-    if (parsed.data.grade.passed) onPass(parsed.data.competencyId, parsed.data.grade.score);
-  }
-
-  if (phase === "loading") {
-    return (
-      <section className="reading-column">
-        <PageTitle eyebrow="Live coding challenge" title="Loading your challenge…" description="Fetching a framework-current task for your current focus." />
-      </section>
-    );
-  }
-
-  if (phase === "error" || !challenge) {
-    return (
-      <section className="reading-column">
-        <PageTitle eyebrow="Live coding challenge" title="No challenge available" description="Try again shortly, or continue from your roadmap." />
-        <button className="button button-primary" onClick={onViewRoadmap} type="button">Back to roadmap <ArrowRight size={16} /></button>
-      </section>
-    );
-  }
-
-  const isGrading = phase === "grading";
-
+function Challenges({ brief, isCompletingMission, missionError, missionComplete, onComplete, onViewRoadmap }: { brief: DecisionBrief; isCompletingMission: boolean; missionError: string | null; missionComplete: boolean; onComplete: () => void; onViewRoadmap: () => void }) {
   return (
     <section className="reading-column">
-      <PageTitle eyebrow="Live coding challenge" title={challenge.title} description="Write real code. An AI grader checks it against the criteria — this is not multiple choice." />
-      <div className="challenge-meta">
-        <span className="challenge-badge"><Code2 size={13} /> {challenge.language}</span>
-        <span className="challenge-badge">{challenge.framework}</span>
-        <span className="challenge-badge">{challenge.difficulty}</span>
-      </div>
-      <p className="challenge-scenario">{challenge.scenario}</p>
-
-      <div className="criteria-block">
-        <p className="eyebrow">What the grader checks</p>
-        <ul className="acceptance-list">
-          {challenge.criteria.map((criterion) => <li key={criterion}><Check size={15} /> {criterion}</li>)}
-        </ul>
-      </div>
-
-      <label className="code-editor-label" htmlFor="challenge-code">Your solution</label>
-      <textarea
-        className="code-editor"
-        id="challenge-code"
-        onChange={(event) => setCode(event.target.value)}
-        spellCheck={false}
-        value={code}
-      />
-
-      <div className="mission-actions">
-        <button className="button button-primary" disabled={isGrading || code.trim().length === 0} onClick={submit} type="button">
-          {isGrading ? "Grading…" : "Submit for grading"} <ArrowRight size={16} />
-        </button>
-        {grade?.passed ? <button className="button button-ghost" onClick={onViewRoadmap} type="button">View updated roadmap</button> : null}
-      </div>
-      {error ? <p className="inline-error" role="alert">{error}</p> : null}
-
-      {phase === "graded" && grade ? (
-        <article className={`grade-card ${grade.passed ? "is-pass" : "is-fail"}`}>
-          <div className="grade-top">
-            <span className={`grade-verdict ${grade.passed ? "is-pass" : "is-fail"}`}>{grade.passed ? "Passed" : "Not yet"}</span>
-            <span className="grade-score">{grade.score}/100</span>
-          </div>
-          <div className="gap-bar"><span className={`gap-fill ${grade.passed ? "validated" : "emerging"}`} style={{ width: `${grade.score}%` }} /></div>
-          <ul className="grade-criteria">
-            {grade.criteria.map((result) => (
-              <li className={result.met ? "is-met" : "is-missed"} key={result.criterion}>
-                {result.met ? <Check size={15} /> : <X size={15} />}
-                <span><strong>{result.criterion}</strong>{result.note ? <small>{result.note}</small> : null}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="grade-feedback">{grade.feedback}</p>
-          <p className="grade-source">{grade.gradedBy === "ai" ? "Graded by AI against the criteria." : "Graded offline by heuristic — add an AI provider key for correctness-aware grading."}</p>
-        </article>
-      ) : null}
+      <PageTitle eyebrow="Build mission" title={missionComplete ? "Mission complete" : brief.nextAction.title} description={missionComplete ? "Your reflection has updated the roadmap. Review the next milestone when you are ready." : "A focused task that improves the project and produces evidence about your engineering capability."} />
+      <article className={`mission-detail ${missionComplete ? "is-complete" : ""}`}>
+        <div className="mission-detail-header"><span className="mission-kicker"><Lightbulb size={15} /> {brief.nextAction.competency}</span><span className="time-estimate"><Clock3 size={14} /> {brief.nextAction.estimateMinutes} min</span></div>
+        <h2>{missionComplete ? "You created evidence, not just another feature." : "Target outcome"}</h2>
+        <p>{missionComplete ? `GenPHD recorded evidence for ${brief.nextAction.competency.toLowerCase()} and will use it in future roadmap updates.` : brief.nextAction.objective}</p>
+        <div className="criteria-block"><p className="eyebrow">Acceptance criteria</p><ul className="acceptance-list">{brief.nextAction.acceptanceCriteria.map((criterion) => <li className={missionComplete ? "is-done" : ""} key={criterion}><Check size={15} /> {criterion}</li>)}</ul></div>
+        {!missionComplete ? <div className="hint-box"><Lightbulb size={17} /><p><strong>Hint</strong> Begin with one representative input, one observable result, and one pass/fail condition before widening scope.</p></div> : null}
+        <div className="mission-actions">{missionComplete ? <button className="button button-primary" onClick={onViewRoadmap} type="button">View updated roadmap <ArrowRight size={16} /></button> : <button className="button button-primary" disabled={isCompletingMission} onClick={onComplete} type="button">{isCompletingMission ? "Saving outcome…" : "Complete mission"} <Check size={16} /></button>}</div>
+        {missionError ? <p className="inline-error" role="alert">{missionError}</p> : null}
+      </article>
+    </section>
+  );
+}
     </section>
   );
 }
