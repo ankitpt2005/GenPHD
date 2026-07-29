@@ -2319,12 +2319,12 @@ kbd {
 /* Dashboard reference layout: compact navigation, one clear action, and a quiet evidence rail. */
 .dashboard-shell {
   --sidebar-width: 168px;
-  --workspace-topbar-height: 44px;
+  --workspace-topbar-height: 0px;
   background: #090e14;
 }
 
 .dashboard-shell .sidebar {
-  inset: var(--workspace-topbar-height) auto 0 0;
+  inset: 0 auto 0 0;
   height: auto;
   border-color: #1e2731;
   background: #0b1016;
@@ -2508,12 +2508,12 @@ kbd {
 }
 
 .dashboard-shell .app-main {
-  padding-top: var(--workspace-topbar-height);
+  padding-top: 0;
   background: #090e14;
 }
 
 .dashboard-shell .topbar {
-  height: var(--workspace-topbar-height);
+  height: 48px;
   border-color: #1e2731;
   padding: 0 20px;
 }
@@ -2754,7 +2754,7 @@ kbd {
 @media (min-width: 1280px) {
   .dashboard-shell {
     --sidebar-width: 184px;
-    --workspace-topbar-height: 50px;
+    --workspace-topbar-height: 0px;
   }
 
   .dashboard-shell .brand-mark {
