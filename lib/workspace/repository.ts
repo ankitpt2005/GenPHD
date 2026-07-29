@@ -38,6 +38,12 @@ export class WorkspacePersistenceError extends Error {
   }
 }
 
+export class OnboardingRequiredError extends Error {
+  constructor() {
+    super("Please complete onboarding to activate your project.");
+  }
+}
+
 const demoProject: ActiveProject = {
   id: "docuquery",
   name: "DocuQuery",
@@ -78,15 +84,6 @@ const demoMemory: MemoryItem[] = [
   { id: "constraint", scope: "project", label: "Project constraint", value: "Two-day milestone with one retrieval flow", provenance: "onboarding" },
   { id: "skill", scope: "learning", label: "RAG evaluation", value: "Emerging", provenance: "diagnostic" },
 ];
-
-const starterProject: ActiveProject = {
-  id: "starter-project",
-  name: "Your first project",
-  outcome: "Complete onboarding to add the project outcome you want to prove.",
-  stack: [],
-  weeklyHours: 1,
-  constraints: [],
-};
 
 const activeProjectRowSchema = z.object({
   id: z.string().uuid(),
@@ -160,22 +157,7 @@ async function ensureActiveProject(supabase: SupabaseClient, userId: string) {
     return toActiveProject(activeProjectRowSchema.parse(existing.data));
   }
 
-  const created = await supabase
-    .from("projects")
-    .insert({
-      user_id: userId,
-      name: starterProject.name,
-      outcome: starterProject.outcome,
-      stack: starterProject.stack,
-      constraints: starterProject.constraints,
-      is_active: true,
-    })
-    .select("id, name, outcome, stack, constraints")
-    .single();
-  requireSuccess(created.error);
-
-  const project = toActiveProject(activeProjectRowSchema.parse(created.data));
-  return project;
+  throw new OnboardingRequiredError();
 }
 
 export async function getActiveProject(context: WorkspaceContext) {

@@ -1,9 +1,13 @@
 import { AuthenticationRequiredError } from "../workspace/context";
-import { WorkspacePersistenceError } from "../workspace/repository";
+import { OnboardingRequiredError, WorkspacePersistenceError } from "../workspace/repository";
 
 export function apiErrorResponse(error: unknown) {
   if (error instanceof AuthenticationRequiredError) {
     return { body: { error: "UNAUTHORIZED", message: error.message }, status: 401 };
+  }
+
+  if (error instanceof OnboardingRequiredError) {
+    return { body: { error: "ONBOARDING_REQUIRED", message: error.message }, status: 403 };
   }
 
   if (error instanceof WorkspacePersistenceError) {
