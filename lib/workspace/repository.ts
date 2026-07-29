@@ -38,12 +38,6 @@ export class WorkspacePersistenceError extends Error {
   }
 }
 
-export class OnboardingRequiredError extends Error {
-  constructor() {
-    super("Please complete onboarding to activate your project.");
-  }
-}
-
 const demoProject: ActiveProject = {
   id: "docuquery",
   name: "DocuQuery",
@@ -144,6 +138,15 @@ function toActiveProject(row: z.infer<typeof activeProjectRowSchema>): ActivePro
   return activeProjectSchema.parse({ ...row, weeklyHours: 6 });
 }
 
+const starterProject: ActiveProject = {
+  id: "starter-project",
+  name: "Your active project",
+  outcome: "Source-grounded AI capabilities with traceable context",
+  stack: ["Next.js", "TypeScript", "Supabase"],
+  weeklyHours: 6,
+  constraints: ["two-day milestone", "one retrieval flow"],
+};
+
 async function ensureActiveProject(supabase: SupabaseClient, userId: string) {
   const existing = await supabase
     .from("projects")
@@ -157,7 +160,21 @@ async function ensureActiveProject(supabase: SupabaseClient, userId: string) {
     return toActiveProject(activeProjectRowSchema.parse(existing.data));
   }
 
-  throw new OnboardingRequiredError();
+  const created = await supabase
+    .from("projects")
+    .insert({
+      user_id: userId,
+      name: starterProject.name,
+      outcome: starterProject.outcome,
+      stack: starterProject.stack,
+      constraints: starterProject.constraints,
+      is_active: true,
+    })
+    .select("id, name, outcome, stack, constraints")
+    .single();
+  requireSuccess(created.error);
+
+  return toActiveProject(activeProjectRowSchema.parse(created.data));
 }
 
 export async function getActiveProject(context: WorkspaceContext) {

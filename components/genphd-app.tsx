@@ -336,10 +336,6 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         if (!parsedProject?.success) {
           const response = await fetch("/api/projects/active", { cache: "no-store" });
           const payload: unknown = await response.json();
-          if (response.status === 403 && (payload as { error?: string })?.error === "ONBOARDING_REQUIRED") {
-            router.replace("/onboarding");
-            return;
-          }
           const activeProject = activeProjectSchema.safeParse(payload);
           if (response.ok && activeProject.success && isCurrent) {
             setProject(activeProject.data);
@@ -349,10 +345,6 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         if (!parsedBrief?.success) {
           const response = await fetch("/api/decisions", { cache: "no-store" });
           const payload: unknown = await response.json();
-          if (response.status === 403 && (payload as { error?: string })?.error === "ONBOARDING_REQUIRED") {
-            router.replace("/onboarding");
-            return;
-          }
           const state = decisionStateSchema.safeParse(payload);
 
           if (response.ok && state.success && isCurrent) {
@@ -367,10 +359,6 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         if (!parsedRoadmap?.success || !parsedGapVector?.success) {
           const response = await fetch("/api/roadmap", { cache: "no-store" });
           const payload: unknown = await response.json();
-          if (response.status === 403 && (payload as { error?: string })?.error === "ONBOARDING_REQUIRED") {
-            router.replace("/onboarding");
-            return;
-          }
           const roadmapPayload = roadmapPayloadSchema.safeParse(payload);
           if (response.ok && roadmapPayload.success && isCurrent) {
             if (!parsedRoadmap?.success) setRoadmap(roadmapPayload.data.milestones);
