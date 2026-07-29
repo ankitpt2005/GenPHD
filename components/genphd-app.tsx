@@ -14,6 +14,7 @@ import {
   ChevronRight,
   CircleHelp,
   Clock3,
+  Code2,
   Command,
   ExternalLink,
   FileCheck2,
@@ -33,6 +34,7 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
+  Terminal,
   Trophy,
   X,
 } from "lucide-react";
@@ -52,7 +54,9 @@ import {
   type CompetencyScore,
   type RoadmapMilestone,
 } from "../lib/workspace/contracts";
-import { COMPETENCIES } from "../lib/competencies";
+import { COMPETENCIES, normalizeCompetencyId } from "../lib/competencies";
+import { challengeForCompetency } from "../lib/challenges/bank";
+import type { ChallengeGrade } from "../lib/challenges/types";
 
 export type WorkspacePage =
   | "dashboard"
@@ -956,7 +960,134 @@ function Projects({ brief, onDecision, project, roadmap }: { brief: DecisionBrie
   );
 }
 
+function CodingChallengeCard({
+  challenge,
+  missionComplete,
+  onComplete,
+}: {
+  challenge: ReturnType<typeof challengeForCompetency>;
+  missionComplete: boolean;
+  onComplete: () => void;
+}) {
+  const [code, setCode] = useState(challenge.starterCode);
+  const [isGrading, setIsGrading] = useState(false);
+  const [gradeResult, setGradeResult] = useState<ChallengeGrade | null>(null);
+  const [gradeError, setGradeError] = useState<string | null>(null);
+
+  async function submitChallenge() {
+    setIsGrading(true);
+    setGradeError(null);
+    try {
+      const response = await fetch("/api/challenges/grade", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ challengeId: challenge.id, code }),
+      });
+      const data: unknown = await response.json();
+      if (!response.ok) {
+        const msg = typeof data === "object" && data !== null && "message" in data && typeof data.message === "string" ? data.message : "Failed to grade challenge";
+        throw new Error(msg);
+      }
+      const parsedGrade = (data as { grade: ChallengeGrade }).grade;
+      setGradeResult(parsedGrade);
+      if (parsedGrade.passed && !missionComplete) {
+        onComplete();
+      }
+    } catch (err: unknown) {
+      setGradeError(err instanceof Error ? err.message : "Error grading challenge. Please try again.");
+    } finally {
+      setIsGrading(false);
+    }
+  }
+
+  return (
+    <section className="section-block challenge-section" style={{ marginTop: "24px" }}>
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow"><Code2 size={15} style={{ display: "inline", verticalAlign: "middle", marginRight: "6px" }} /> Hands-on coding challenge</p>
+          <h2>{challenge.title}</h2>
+        </div>
+        <span className="quiet-label" style={{ textTransform: "capitalize" }}>{challenge.language} · {challenge.framework}</span>
+      </div>
+
+      <article className="decision-summary" style={{ marginBottom: "16px" }}>
+        <div className="summary-icon"><Terminal size={18} /></div>
+        <div>
+          <p style={{ color: "#e4e4e7", fontSize: "14px", lineHeight: "1.5" }}>{challenge.scenario}</p>
+        </div>
+      </article>
+
+      <div className="code-editor-block" style={{ background: "#0b1016", border: "1px solid #1e2731", borderRadius: "8px", overflow: "hidden", marginBottom: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", background: "#131a22", borderBottom: "1px solid #1e2731", fontSize: "12px", color: "#a1a1aa" }}>
+          <span>solution.{challenge.language === "python" ? "py" : "ts"}</span>
+          <span style={{ textTransform: "capitalize" }}>{challenge.difficulty} difficulty</span>
+        </div>
+        <textarea
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          disabled={isGrading}
+          rows={10}
+          style={{
+            width: "100%",
+            padding: "16px",
+            background: "#090e14",
+            color: "#38bdf8",
+            fontFamily: "monospace",
+            fontSize: "13px",
+            lineHeight: "1.6",
+            border: "none",
+            outline: "none",
+            resize: "vertical",
+          }}
+        />
+      </div>
+
+      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <button
+          className="button button-primary"
+          disabled={isGrading || !code.trim()}
+          onClick={() => void submitChallenge()}
+          type="button"
+        >
+          <Sparkles size={16} /> {isGrading ? "Evaluating solution…" : "Grade code challenge"}
+        </button>
+        <button
+          className="button button-ghost"
+          onClick={() => setCode(challenge.starterCode)}
+          type="button"
+        >
+          Reset starter code
+        </button>
+      </div>
+
+      {gradeError ? <p className="inline-error" role="alert" style={{ marginTop: "12px" }}>{gradeError}</p> : null}
+
+      {gradeResult ? (
+        <article className="recommendation-card" style={{ marginTop: "20px", background: gradeResult.passed ? "rgba(16, 185, 129, 0.08)" : "rgba(239, 68, 68, 0.08)", borderColor: gradeResult.passed ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)" }}>
+          <div className="recommendation-top">
+            <span className="eyebrow" style={{ color: gradeResult.passed ? "#34d399" : "#f87171" }}>
+              {gradeResult.passed ? "Challenge passed" : "Needs revision"}
+            </span>
+            <strong style={{ fontSize: "16px", color: gradeResult.passed ? "#34d399" : "#f87171" }}>Score: {gradeResult.score}/100</strong>
+          </div>
+          <p style={{ marginTop: "8px", color: "#e4e4e7" }}>{gradeResult.feedback}</p>
+          <ul className="acceptance-list" style={{ marginTop: "12px" }}>
+            {gradeResult.criteria.map((c) => (
+              <li className={c.met ? "is-done" : ""} key={c.criterion}>
+                <Check size={15} /> {c.criterion}: {c.note}
+              </li>
+            ))}
+          </ul>
+        </article>
+      ) : null}
+    </section>
+  );
+}
+
 function Challenges({ brief, isCompletingMission, missionError, missionComplete, onComplete, onViewRoadmap }: { brief: DecisionBrief; isCompletingMission: boolean; missionError: string | null; missionComplete: boolean; onComplete: () => void; onViewRoadmap: () => void }) {
+  const competencyId = normalizeCompetencyId(brief.nextAction.competency);
+  const challenge = useMemo(() => challengeForCompetency(competencyId), [competencyId]);
+
   return (
     <section className="reading-column">
       <PageTitle eyebrow="Build mission" title={missionComplete ? "Mission complete" : brief.nextAction.title} description={missionComplete ? "Your reflection has updated the roadmap. Review the next milestone when you are ready." : "A focused task that improves the project and produces evidence about your engineering capability."} />
@@ -969,6 +1100,8 @@ function Challenges({ brief, isCompletingMission, missionError, missionComplete,
         <div className="mission-actions">{missionComplete ? <button className="button button-primary" onClick={onViewRoadmap} type="button">View updated roadmap <ArrowRight size={16} /></button> : <button className="button button-primary" disabled={isCompletingMission} onClick={onComplete} type="button">{isCompletingMission ? "Saving outcome…" : "Complete mission"} <Check size={16} /></button>}</div>
         {missionError ? <p className="inline-error" role="alert">{missionError}</p> : null}
       </article>
+
+      <CodingChallengeCard challenge={challenge} key={challenge.id} missionComplete={missionComplete} onComplete={onComplete} />
     </section>
   );
 }
