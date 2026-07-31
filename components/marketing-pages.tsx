@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { BrandLogo } from "./brand-logo";
 import { useState, useEffect, type ReactNode } from "react";
 import {
@@ -8,8 +9,6 @@ import {
   ArrowUpRight,
   BrainCircuit,
   Check,
-  ChevronLeft,
-  ChevronRight,
   Compass,
   Database,
   MessageSquare,
@@ -78,7 +77,7 @@ function UserFeedbackCarousel() {
         <MessageSquare size={12} /> USER FEEDBACK
       </div>
       <div className={`feedback-clean-body ${fadeState === "in" ? "fade-in" : "fade-out"}`}>
-        <p className="feedback-text-clean">"{current.feedback}"</p>
+        <p className="feedback-text-clean">&ldquo;{current.feedback}&rdquo;</p>
         <div className="feedback-author-clean">
           <h4 className="feedback-name-clean">{current.name}</h4>
           <p className="feedback-role-clean">{current.role}</p>
@@ -94,33 +93,6 @@ const navigation = [
   ["How it works", "/services"],
   ["Field notes", "/feedback"],
   ["Contact", "/contact"],
-] as const;
-
-const footerNavigation = [
-  {
-    title: "Explore",
-    links: [
-      ["About GenPHD", "/about", "https://app.notion.com/p/3a4a7ebae27d8165ab01c0b323adcd50"],
-      ["How it works", "/services", "https://app.notion.com/p/3a4a7ebae27d81afb848fe790634ff34"],
-      ["Field notes", "/feedback", "https://app.notion.com/p/3a4a7ebae27d81a8a335d3f1e34abb84"],
-    ],
-  },
-  {
-    title: "Workspace",
-    links: [
-      ["Start a project", "/signup", "https://app.notion.com/p/3a4a7ebae27d816ca4d9c13354a7c3bd"],
-      ["Sign in", "/login", "https://app.notion.com/p/3a4a7ebae27d812e9eddc141989b021a"],
-      ["Contact", "/contact", "https://app.notion.com/p/3a4a7ebae27d81e28407d89dd25b6bac"],
-    ],
-  },
-  {
-    title: "Trust",
-    links: [
-      ["Privacy", "/privacy", "https://app.notion.com/p/3a4a7ebae27d81f3ae65ca39a709dd37"],
-      ["Terms", "/terms", "https://app.notion.com/p/3a4a7ebae27d81ebbc7fc63ae04c3dfa"],
-      ["Policies", "/legal", "https://app.notion.com/p/3a4a7ebae27d812f952be0b6481b3194"],
-    ],
-  },
 ] as const;
 
 export function PublicHeader() {
@@ -330,11 +302,12 @@ export function AboutPage() {
       <PublicHeader />
       <section className="editorial-page-heading about-page-heading" aria-labelledby="about-title">
         <div className="about-heading-bg" aria-hidden="true">
-          <img
+          <Image
             src="/about-user-bg.png"
             alt=""
             className="about-bg-img"
-            loading="eager"
+            fill
+            priority
           />
           <div className="about-bg-gradient-overlay" />
         </div>
@@ -391,10 +364,12 @@ export function AboutPage() {
             <div className="marble-vein-overlay" />
             <div className="marble-light-sweep" />
             <div className="g-artwork-ambient-ring" />
-            <img
+            <Image
               src="/g-artwork.jpg"
               alt="Floral calligraphic G artwork"
               className="manifesto-g-artwork-img"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
         </div>
