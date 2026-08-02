@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,7 +15,6 @@ import {
   CircleHelp,
   Clock3,
   Code2,
-  Command,
   ExternalLink,
   FileCheck2,
   FolderKanban,
@@ -278,6 +277,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   const [project, setProject] = useState<ActiveProject>(defaultProject);
   const [roadmap, setRoadmap] = useState<RoadmapMilestone[]>(defaultRoadmap);
   const [gapVector, setGapVector] = useState<CompetencyScore[]>(defaultGapVector);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const navigationKey = useRef<string | null>(null);
 
   const completedCount = useMemo(() => (missionComplete ? 2 : 1), [missionComplete]);
@@ -579,17 +579,22 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
   return (
     <div className="app-shell dashboard-shell">
       <aside className={`sidebar ${isSidebarOpen ? "" : "is-collapsed"} ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
-        <div className="sidebar-top">
-          <button className="brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
-            <BrandLogo priority />
-          </button>
-          <button className="icon-button sidebar-toggle" onClick={() => setIsSidebarOpen((current) => !current)} type="button" aria-label="Toggle sidebar">
-            {isSidebarOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
-          </button>
+        {isMobileMenuOpen && (
           <button className="icon-button mobile-menu-close" onClick={() => setIsMobileMenuOpen(false)} type="button" aria-label="Close navigation">
             <X size={18} />
           </button>
-        </div>
+        )}
+
+        <button
+          aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+          className="sidebar-toggle-top"
+          onClick={() => setIsSidebarOpen((current) => !current)}
+          title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+          type="button"
+        >
+          {isSidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+          <span>Collapse sidebar</span>
+        </button>
 
         <div className="project-switcher">
           <span className="project-dot" aria-hidden="true" />
@@ -605,31 +610,7 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
         </nav>
 
         <div className="sidebar-bottom">
-          <button className="shortcut-button help-tour-button" onClick={() => setIsTourOpen(true)} type="button">
-            <CircleHelp size={15} aria-hidden="true" />
-            <span>How GenPHD works</span>
-            <kbd>?</kbd>
-          </button>
-          <button className="shortcut-button" onClick={() => setIsCommandOpen(true)} type="button">
-            <Command size={15} aria-hidden="true" />
-            <span>Search workspace</span>
-            <kbd>⌘ K</kbd>
-          </button>
-          <button className="sidebar-search" onClick={() => setIsCommandOpen(true)} type="button">
-            <Search aria-hidden="true" size={14} />
-            <span>Search workspace</span>
-          </button>
-          <button
-            aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-            className="sidebar-toggle sidebar-toggle-bottom"
-            onClick={() => setIsSidebarOpen((current) => !current)}
-            title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-            type="button"
-          >
-            {isSidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
-            <span>{isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}</span>
-          </button>
-          <button className="user-button" type="button" onClick={() => navigate("settings")}>
+          <button className="user-button" type="button" onClick={() => router.push("/profile")}>
             <span className="avatar">AP</span>
             <span>
               <strong>Ankit Pandit</strong>
@@ -644,27 +625,33 @@ export function GenPHDApp({ initialPage = "dashboard" }: { initialPage?: Workspa
 
       <main className="app-main">
         <header className="topbar">
-          <button className="icon-button mobile-menu" onClick={() => setIsMobileMenuOpen(true)} type="button" aria-label="Open navigation">
-            <Menu size={19} />
-          </button>
-          <div className="topbar-context">
-            <span>{project.name}</span>
-            <ChevronRight size={14} aria-hidden="true" />
-            <strong>{navItems.find((item) => item.id === page)?.label ?? "Today"}</strong>
+          <div className="topbar-left">
+            <button className="brand topbar-brand" onClick={() => navigate("dashboard")} type="button" aria-label="Go to dashboard">
+              <BrandLogo priority />
+            </button>
+            <button className="icon-button mobile-menu" onClick={() => setIsMobileMenuOpen(true)} type="button" aria-label="Open navigation">
+              <Menu size={19} />
+            </button>
+            <div className="topbar-context">
+              <span>{project.name}</span>
+              <ChevronRight size={14} aria-hidden="true" />
+              <strong>{navItems.find((item) => item.id === page)?.label ?? "Today"}</strong>
+            </div>
           </div>
           <div className="topbar-actions">
+            <button className="header-search-bar" onClick={() => setIsCommandOpen(true)} type="button" aria-label="Search workspace">
+              <Search size={14} className="search-icon-premium" />
+              <span>Search workspace...</span>
+              <kbd className="search-kbd">⌘K</kbd>
+            </button>
             <button className="icon-button tour-button" onClick={() => setIsTourOpen(true)} type="button" aria-label="How GenPHD works">
               <CircleHelp size={17} />
-            </button>
-            <button className="icon-button" onClick={() => setIsCommandOpen(true)} type="button" aria-label="Search workspace">
-              <Search size={17} />
             </button>
             <button className="icon-button notification-button" onClick={() => router.push("/notifications")} type="button" aria-label="View notifications">
               <Bell size={17} />
               <span className="notification-dot" aria-hidden="true" />
             </button>
-            {hasSecureAuth ? <SignOutButton /> : <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>}
-            <button className="avatar topbar-avatar" onClick={() => router.push("/profile")} type="button" aria-label="Open profile">G</button>
+            {mounted && hasSecureAuth ? <SignOutButton /> : <Link className="button button-secondary sign-in-link" href="/login">Sign in</Link>}
           </div>
         </header>
 

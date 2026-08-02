@@ -504,3 +504,6 @@ export function MarketingContactPage() {
     </MarketingPage>
   );
 }
+
+export { MarketingLandingPage as LandingPage };
+

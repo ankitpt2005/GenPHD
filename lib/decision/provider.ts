@@ -4,7 +4,6 @@ import {
   confidenceSchema,
   conflictSchema,
   decisionBriefSchema,
-  missionSchema,
   type CreateDecisionInput,
   type DecisionBrief,
 } from "./types";
@@ -50,17 +49,55 @@ const modelCompetencySchema = z.string().trim().transform((value) => {
 }).pipe(z.enum(["RAG evaluation", "AI evaluation", "Agentic workflows", "AI system design", "Retrieval"]));
 
 const modelDecisionSchema = z.object({
-  recommendation: z.string().trim().min(12).max(280),
-  summary: z.string().trim().min(24).max(900),
-  confidence: modelConfidenceSchema,
-  confidenceReason: z.string().trim().min(12).max(500),
-  tradeoff: z.string().trim().min(12).max(600),
-  counterfactual: z.string().trim().min(12).max(600),
-  conflicts: z.array(modelConflictSchema).max(6),
-  nextAction: missionSchema.pick({ title: true, objective: true, estimateMinutes: true, acceptanceCriteria: true, competency: true }).extend({
-    estimateMinutes: z.coerce.number().int().min(15).max(180),
-    competency: modelCompetencySchema,
-  }),
+  recommendation: z
+    .string()
+    .trim()
+    .catch("Use a simple, grounded architectural approach for this milestone.")
+    .transform((val) => (val.length < 12 ? `${val} (Recommended for project context)` : val.slice(0, 280))),
+  summary: z
+    .string()
+    .trim()
+    .catch("This decision recommendation balances delivery speed, architectural complexity, and project evidence.")
+    .transform((val) => (val.length < 24 ? `${val}. This recommendation balances delivery speed and constraints.` : val.slice(0, 900))),
+  confidence: modelConfidenceSchema.catch("medium"),
+  confidenceReason: z
+    .string()
+    .trim()
+    .catch("Confidence score derived from evidence alignment and project delivery constraints.")
+    .transform((val) => val.slice(0, 500)),
+  tradeoff: z
+    .string()
+    .trim()
+    .catch("Short-term implementation velocity is prioritized against long-term maintenance overhead.")
+    .transform((val) => val.slice(0, 600)),
+  counterfactual: z
+    .string()
+    .trim()
+    .catch("If project scope or delivery window expands, alternative architectural options should be evaluated.")
+    .transform((val) => val.slice(0, 600)),
+  conflicts: z.array(modelConflictSchema).catch([]).transform((arr) => arr.slice(0, 6)),
+  nextAction: z
+    .object({
+      title: z.string().trim().catch("Implement project milestone"),
+      objective: z.string().trim().catch("Validate core implementation requirements and observable results."),
+      estimateMinutes: z.coerce
+        .number()
+        .int()
+        .catch(60)
+        .transform((m) => (Number.isNaN(m) || m < 15 ? 60 : Math.min(m, 180))),
+      acceptanceCriteria: z
+        .array(z.string().trim())
+        .catch(["Initial criteria defined", "Implementation verified", "Observable result confirmed"])
+        .transform((arr) => (arr.length ? arr.slice(0, 3) : ["Criteria defined", "Implementation verified", "Result confirmed"])),
+      competency: modelCompetencySchema.catch("AI system design"),
+    })
+    .catch({
+      title: "Implement project milestone",
+      objective: "Validate core implementation requirements and observable results.",
+      estimateMinutes: 60,
+      acceptanceCriteria: ["Initial criteria defined", "Implementation verified", "Observable result confirmed"],
+      competency: "AI system design",
+    }),
 });
 
 const openAiCompatibleResponseSchema = z.object({

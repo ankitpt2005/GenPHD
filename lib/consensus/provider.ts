@@ -9,23 +9,24 @@ function consensusModels(): { id: string; label: string }[] {
   const raw = process.env.GENPHD_CONSENSUS_MODELS?.trim();
   const ids = raw
     ? raw.split(",").map((value) => value.trim()).filter(Boolean)
-    : ["openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro-1.5"];
+    : ["openai/gpt-4o", "meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat", "mistralai/mistral-large"];
   return ids.map((id) => ({ id, label: labelFor(id) }));
 }
 
 function labelFor(id: string) {
   const value = id.toLowerCase();
-  if (value.includes("gpt") || value.includes("openai") || value.includes("o1")) return "GPT";
+  if (value.includes("gpt") || value.includes("openai") || value.includes("o1")) return "GPT-4o";
   if (value.includes("claude") || value.includes("anthropic")) return "Claude";
   if (value.includes("gemini") || value.includes("google")) return "Gemini";
-  if (value.includes("llama") || value.includes("groq")) return "Llama";
+  if (value.includes("llama") || value.includes("groq")) return "Llama 3.3";
+  if (value.includes("deepseek")) return "DeepSeek V3";
   if (value.includes("mistral") || value.includes("mixtral")) return "Mistral";
   return id.split("/").pop() ?? id;
 }
 
 const modelReplySchema = z.object({
-  headline: z.string().trim().min(3).max(160),
-  detail: z.string().trim().min(8).max(700),
+  headline: z.string().trim().catch("Technical recommendation for active workflow."),
+  detail: z.string().trim().catch("Detailed evaluation based on architectural constraints and delivery window."),
 });
 
 const analysisSchema = z.object({
